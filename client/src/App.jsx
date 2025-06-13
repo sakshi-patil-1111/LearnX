@@ -1,9 +1,12 @@
-import React from 'react'
+import React from 'react';
+import Home from './components/Home';
 
 const App = () => {
   return (
-    <div>App</div>
-  )
-}
+    <div className="min-h-screen">
+      <Home />
+    </div>
+  );
+};
 
-export default App
+export default App;
