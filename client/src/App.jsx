@@ -8,12 +8,15 @@ import Assignments from "./pages/Teacher/Assignments";
 import Profile from "./pages/Teacher/Profile";
 import Announcements from "./pages/Teacher/Announcements";
 import CourseDetail from "./pages/Teacher/CourseDetail";
+import LoginSelector from "./components/LoginSelector";
 
 const App = () => {
   return (
     <div className="min-h-screen">
       <Routes>
         <Route path="/" element={<Home />} />
+        <Route path="/login" element={<LoginSelector type="login" />} />
+        <Route path="/signup" element={<LoginSelector type="signup" />} />
         <Route path="/teacher/dashboard" element={<Dashboard />} />
         <Route path="/teacher/courses" element={<Courses />} />
         <Route path="/teacher/courses/:courseId" element={<CourseDetail />} />
