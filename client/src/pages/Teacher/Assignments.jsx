@@ -2,7 +2,7 @@ import React from "react";
 import Navbar from "../../components/Navbar";
 
 const Assignments = () => {
-  // Mock data 
+  // Mock data
   const assignments = [
     {
       id: 1,
