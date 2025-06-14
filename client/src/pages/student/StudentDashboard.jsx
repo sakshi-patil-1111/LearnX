@@ -1,30 +1,70 @@
 import React from "react";
-import Navbar from "../../components/navbar";
+import Navbar from "../../components/Navbar";
 
 const Dashboard = () => {
   // Mock data for student
   const recentCourses = [
-    { id: 1, title: "Intro to JavaScript", progress: "75%", lastUpdated: "2 days ago" },
-    { id: 2, title: "HTML & CSS Basics", progress: "40%", lastUpdated: "1 week ago" },
-    { id: 3, title: "React Fundamentals", progress: "90%", lastUpdated: "3 days ago" },
+    {
+      id: 1,
+      title: "Intro to JavaScript",
+      progress: "75%",
+      lastUpdated: "2 days ago",
+    },
+    {
+      id: 2,
+      title: "HTML & CSS Basics",
+      progress: "40%",
+      lastUpdated: "1 week ago",
+    },
+    {
+      id: 3,
+      title: "React Fundamentals",
+      progress: "90%",
+      lastUpdated: "3 days ago",
+    },
   ];
 
   const recentMaterials = [
     { id: 1, title: "JS Loops Notes", course: "JavaScript", date: "1 day ago" },
-    { id: 2, title: "Flexbox Cheatsheet", course: "CSS Basics", date: "2 days ago" },
+    {
+      id: 2,
+      title: "Flexbox Cheatsheet",
+      course: "CSS Basics",
+      date: "2 days ago",
+    },
     { id: 3, title: "React State Guide", course: "React", date: "4 days ago" },
   ];
 
   const recentAssignments = [
     { id: 1, title: "JS Quiz 1", course: "JavaScript", dueDate: "2025-06-20" },
-    { id: 2, title: "CSS Layout Challenge", course: "CSS Basics", dueDate: "2025-06-22" },
-    { id: 3, title: "React Mini Project", course: "React", dueDate: "2025-06-25" },
+    {
+      id: 2,
+      title: "CSS Layout Challenge",
+      course: "CSS Basics",
+      dueDate: "2025-06-22",
+    },
+    {
+      id: 3,
+      title: "React Mini Project",
+      course: "React",
+      dueDate: "2025-06-25",
+    },
   ];
 
   const recentAnnouncements = [
-    { id: 1, title: "Exam Instructions", course: "JavaScript", date: "1 day ago" },
+    {
+      id: 1,
+      title: "Exam Instructions",
+      course: "JavaScript",
+      date: "1 day ago",
+    },
     { id: 2, title: "CSS Lab Open", course: "CSS Basics", date: "2 days ago" },
-    { id: 3, title: "Project Deadline Update", course: "React", date: "3 days ago" },
+    {
+      id: 3,
+      title: "Project Deadline Update",
+      course: "React",
+      date: "3 days ago",
+    },
   ];
 
   const DashboardSection = ({ title, items, viewAllLink }) => (
@@ -70,13 +110,7 @@ const Dashboard = () => {
             Student Dashboard
           </h1>
 
-        
-
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-
-
-            
-
             <DashboardSection
               title="Recent Courses"
               items={recentCourses}

@@ -2,33 +2,36 @@ import React from "react";
 import Navbar from "../../components/Navbar";
 
 const Announcements = () => {
-  // Mock data - Replace with actual data from your backend
+  // Mock data for announcements
   const announcements = [
     {
       id: 1,
-      title: "Mid-term Schedule",
-      course: "Mathematics 101",
+      title: "New Module Available",
       content:
-        "The mid-term examination will be held on March 25th, 2024. Please ensure you have completed all the required readings and assignments.",
-      date: "1 day ago",
+        "We've just added a new module on Advanced Data Structures. Please complete it before the upcoming quiz.",
+      course: "Data Structures and Algorithms",
+      instructor: "Prof. Michael Chen",
+      date: "2 hours ago",
       priority: "High",
     },
     {
       id: 2,
-      title: "Lab Safety Guidelines",
-      course: "Physics Advanced",
+      title: "Assignment Deadline Extended",
       content:
-        "Important safety guidelines for the upcoming lab sessions. All students must read and acknowledge these guidelines before participating in any lab activities.",
-      date: "2 days ago",
+        "Due to technical issues, the deadline for the Web Development project has been extended by 2 days.",
+      course: "Web Development Fundamentals",
+      instructor: "Dr. Emily Brown",
+      date: "1 day ago",
       priority: "Medium",
     },
     {
       id: 3,
-      title: "Course Materials Update",
-      course: "Chemistry Basics",
+      title: "Course Schedule Update",
       content:
-        "New course materials have been uploaded. Please download and review them before the next class session.",
-      date: "3 days ago",
+        "The next live session for Introduction to Programming will be held on Friday at 2 PM instead of the regular time.",
+      course: "Introduction to Programming",
+      instructor: "Dr. Sarah Johnson",
+      date: "2 days ago",
       priority: "Low",
     },
   ];
@@ -48,7 +51,7 @@ const Announcements = () => {
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
-      <Navbar userType="teacher" />
+      <Navbar userType="student" />
 
       <div className="p-6">
         {/* Background Effects */}
@@ -60,9 +63,6 @@ const Announcements = () => {
             <h1 className="text-3xl font-bold text-indigo-400">
               Announcements
             </h1>
-            <button className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition">
-              Create New Announcement
-            </button>
           </div>
 
           <div className="space-y-6">
@@ -90,16 +90,13 @@ const Announcements = () => {
                 <p className="text-gray-300 mb-4">{announcement.content}</p>
 
                 <div className="flex justify-between items-center">
-                  <span className="text-sm text-gray-400">
-                    Posted {announcement.date}
-                  </span>
-                  <div className="flex space-x-2">
-                    <button className="px-3 py-1 text-sm bg-gray-700 text-white rounded-md hover:bg-gray-600 transition">
-                      Edit
-                    </button>
-                    <button className="px-3 py-1 text-sm bg-red-500/20 text-red-400 rounded-md hover:bg-red-500/30 transition">
-                      Delete
-                    </button>
+                  <div className="flex flex-col">
+                    <span className="text-sm text-gray-400">
+                      Posted by {announcement.instructor}
+                    </span>
+                    <span className="text-sm text-gray-400">
+                      {announcement.date}
+                    </span>
                   </div>
                 </div>
               </div>
