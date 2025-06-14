@@ -1,6 +1,8 @@
 import React from "react";
 import Navbar from "../../components/navbar";
 
+
+
 const Dashboard = () => {
   // Mock data for student
   const recentCourses = [

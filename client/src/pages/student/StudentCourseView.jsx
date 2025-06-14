@@ -2,6 +2,7 @@ import React from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import Navbar from "../../components/navbar";
 
+
 const StudentCourseView = () => {
   const navigate = useNavigate();
   const { courseId } = useParams();
