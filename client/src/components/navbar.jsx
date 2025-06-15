@@ -1,9 +1,14 @@
 import React, { useState } from "react";
-import { NavLink } from "react-router-dom";
+import { NavLink, useNavigate } from "react-router-dom";
 import PropTypes from "prop-types";
 
 const Navbar = ({ userType }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    navigate("/"); 
+  };
 
   const getNavLinks = () => {
     if (userType === "teacher") {
@@ -31,9 +36,7 @@ const Navbar = ({ userType }) => {
     <>
       <header className="fixed top-0 left-0 right-0 flex justify-between items-center px-6 py-4 bg-gray-800/90 backdrop-blur-md shadow-md z-50">
         <NavLink
-          to={
-            userType === "teacher" ? "/teacher/dashboard" : "/student/dashboard"
-          }
+          to={userType === "teacher" ? "/teacher/dashboard" : "/student/dashboard"}
           className="text-2xl font-bold text-indigo-400 hover:text-indigo-300 transition"
         >
           LearnX
@@ -56,7 +59,10 @@ const Navbar = ({ userType }) => {
               {link.label}
             </NavLink>
           ))}
-          <button className="ml-4 px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition">
+          <button
+            onClick={handleLogout}
+            className="ml-4 px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition"
+          >
             Logout
           </button>
         </nav>
@@ -116,8 +122,11 @@ const Navbar = ({ userType }) => {
 
               <div className="p-6 border-t border-gray-700">
                 <button
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    handleLogout();
+                  }}
                   className="w-full px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition"
-                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Logout
                 </button>
