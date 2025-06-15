@@ -25,9 +25,9 @@ const myCourses = [
 const MyCourses = () => {
   const navigate = useNavigate();
 
-  const handleViewCourse = (id) => {
-    navigate(`/student/course/${id}/view`);
-  };
+ const handleViewCourse = (id) => {
+  navigate(`/student/course/${id}`);
+};
 
   return (
     <>

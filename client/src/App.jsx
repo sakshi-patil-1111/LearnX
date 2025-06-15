@@ -37,8 +37,9 @@ const App = () => {
         <Route path="/student/profile" element={<StudentProfile />} />
         <Route path="/student/edit/profile" element={<StudentEditProfile />} />
         <Route path="/student/All-Courses" element={<AllCourses />} />
-        <Route path="/student/course/:courseId" element={<StudentCourseView />} />
         <Route path="/student/courses" element={<MyCourses />} />
+        <Route path="/student/course/:courseId" element={<StudentCourseView />} />
+        
         <Route path="/student/announcements" element={<StudentAnnouncements />} />
 
         {/* Teacher Routes */}

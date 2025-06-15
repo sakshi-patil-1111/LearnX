@@ -16,61 +16,91 @@ const StudentProfile = () => {
   };
 
   return (
-    <>
+    <div className="min-h-screen bg-gray-900 text-white">
       <Navbar userType="student" />
-      <div className="min-h-screen bg-gray-900 text-white px-6 py-10">
-        <div className="max-w-4xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-xl shadow-lg transition duration-300 hover:-translate-y-1 hover:shadow-xl">
-          <div className="flex flex-col md:flex-row items-center md:items-start p-6 gap-6">
-            {/* Profile Image */}
-            <img
-              src={studentData.avatar}
-              alt="Profile"
-              className="w-32 h-32 rounded-full border-4 border-indigo-400 shadow-md hover:scale-105 transition duration-300"
-            />
 
-            {/* Details */}
-            <div className="flex-1">
-              <h2 className="text-2xl font-bold text-indigo-400 mb-1">
-                {studentData.name}
-              </h2>
-              <p className="text-sm text-gray-400 font-medium mb-4">Student</p>
+      <div className="p-6">
+        {/* Background Effects */}
+        <div className="absolute top-10 left-10 w-72 h-72 bg-indigo-400 opacity-20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-blue-300 opacity-10 rounded-full blur-2xl"></div>
 
-              <p className="text-gray-300">{studentData.bio}</p>
-
-              <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm text-gray-300">
-                <p>
-                  <span className="text-muted">📧 Email:</span>{" "}
-                  {studentData.email}
-                </p>
-                <p>
-                  <span className="text-muted">🎓 Roll No:</span>{" "}
-                  {studentData.rollNo}
-                </p>
-                <p>
-                  <span className="text-muted">📘 Course:</span>{" "}
-                  {studentData.course}
-                </p>
-                <p>
-                  <span className="text-muted">📅 Semester:</span>{" "}
-                  {studentData.semester}
-                </p>
-                <p>
-                  <span className="text-muted">🕓 Joined:</span>{" "}
-                  {studentData.joined}
-                </p>
+        <div className="max-w-4xl mx-auto relative z-10">
+          <div className="bg-gray-800/80 backdrop-blur-md rounded-lg shadow-lg overflow-hidden">
+            {/* Profile Header */}
+            <div className="relative h-48 bg-gradient-to-r from-indigo-500 to-purple-600">
+              <div className="absolute -bottom-16 left-8">
+                <div className="w-32 h-32 rounded-full border-4 border-gray-800 bg-gray-700 overflow-hidden">
+                  <img
+                    src={studentData.avatar}
+                    alt="Profile"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
               </div>
-              <div className="mt-6">
+            </div>
+
+            {/* Profile Content */}
+            <div className="pt-20 px-8 pb-8">
+              <div className="flex justify-between items-start mb-6">
+                <div>
+                  <h1 className="text-2xl font-bold text-indigo-400">
+                    {studentData.name}
+                  </h1>
+                  <p className="text-gray-400">{studentData.email}</p>
+                </div>
                 <Link to="/student/edit/profile">
-                  <button className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-400 hover:scale-105 transition">
+                  <button className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition transform hover:scale-105 duration-300">
                     Edit Profile
                   </button>
                 </Link>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-400">
+                      Roll Number
+                    </h3>
+                    <p className="text-white">{studentData.rollNo}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-400">
+                      Course
+                    </h3>
+                    <p className="text-white">{studentData.course}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-400">
+                      Semester
+                    </h3>
+                    <p className="text-white">{studentData.semester}</p>
+                  </div>
+                </div>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-400">
+                      Joined
+                    </h3>
+                    <p className="text-white">{studentData.joined}</p>
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-medium text-gray-400">
+                      Status
+                    </h3>
+                    <p className="text-green-400">Active</p>
+                  </div>
+                </div>
+              </div>
+
+              <div>
+                <h3 className="text-sm font-medium text-gray-400 mb-2">Bio</h3>
+                <p className="text-gray-300">{studentData.bio}</p>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
 };
 
