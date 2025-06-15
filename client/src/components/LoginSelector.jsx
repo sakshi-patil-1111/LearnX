@@ -1,109 +1,103 @@
-import React, { useEffect, useState } from "react";
-import { SignIn, SignUp, useUser } from "@clerk/clerk-react";
-import HomeLayout from "./HomeLayout";
-import { useAppContext } from "../context/appContext";
-import { useNavigate } from "react-router-dom";
-import "../index.css";
+import { useParams, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import HomeLayout from './HomeLayout';
 
-const LoginSelector = ({ type: initialType }) => {
-  const [role, setRole] = useState(null);
-  const [authType, setAuthType] = useState(initialType);
-  const { setIsTeacher, setUser } = useAppContext();
-  const { isSignedIn, user } = useUser();
+const LoginSelector = () => {
+  const { role } = useParams();
+  const [isSignup, setIsSignup] = useState(false);
+  const [form, setForm] = useState({ name: "", email: "", password: "" });
   const navigate = useNavigate();
 
-  // Set role (instructor/student)
-  const handleSelect = (isInstructor) => {
-    setIsTeacher(isInstructor);
-    setRole(isInstructor ? "instructor" : "student");
+  const handleSubmit = (e) => {
+    e.preventDefault();
+    alert(`${isSignup ? "Signup" : "Login"} successful as ${role}`);
+    navigate(`/${role}/dashboard`);
   };
 
-  // Redirect after successful login/signup
-  useEffect(() => {
-    if (isSignedIn && role) {
-      setUser(user);
-      if (role === "instructor") {
-        navigate("/teacher/dashboard");
-      } else {
-        navigate("/student/dashboard");
-      }
-    }
-  }, [isSignedIn, role, user, navigate, setUser]);
-
-  const clerkAppearance = {
-    variables: {
-      colorPrimary: "#6366f1",
-      colorBackground: "#ffffff",
-      colorText: "#000000",
-      colorInputBackground: "#ffffff",
-      borderRadius: "0.75rem",
-    },
-    elements: {
-      card: "clerk-card",
-      headerTitle: "clerk-header",
-      socialButtonsBlockButton: "clerk-social-btn",
-      formButtonPrimary: "clerk-primary-btn",
-      footer: "hidden", 
-    },
+  const handleGoogleLogin = () => {
+    alert(`Logged in with Google as ${role}`);
+    navigate(`/${role}/dashboard`);
   };
 
   return (
     <HomeLayout>
-      <div className="login-page-container">
-        {!role ? (
-          <div className="login-selector-box">
-            <h2 className="login-title">Continue as</h2>
-            <div className="login-button-group">
-              <button onClick={() => handleSelect(true)} className="btn-instructor">
-                👩‍🏫 Instructor
-              </button>
-              <button onClick={() => handleSelect(false)} className="btn-student">
-                👩‍🎓 Student
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="login-selector-box">
-            <h2 className="login-title">
-              {authType === "login" ? "Login as" : "Sign up as"} {role}
-            </h2>
+      <form
+        onSubmit={handleSubmit}
+        className="flex flex-col gap-4 m-auto items-start p-8 py-12 w-80 sm:w-[352px] rounded-lg shadow-xl border border-gray-200 bg-white mt-6"
+      >
+        <p className="text-2xl font-medium m-auto mb-4">
+          <span className="text-indigo-400 capitalize">{role}</span>{" "}
+          <span className="text-black">{isSignup ? "Sign Up" : "Login"}</span>
+        </p>
 
-            {/* Custom toggle above Clerk form */}
-            <div style={{ textAlign: "center", marginBottom: "1rem" }}>
-              {authType === "login" ? (
-                <span>
-                  Don’t have an account?{" "}
-                  <button
-                    onClick={() => setAuthType("signup")}
-                    className="text-indigo-500 font-medium"
-                    style={{ background: "none", border: "none", cursor: "pointer" }}
-                  >
-                    Sign up
-                  </button>
-                </span>
-              ) : (
-                <span>
-                  Already have an account?{" "}
-                  <button
-                    onClick={() => setAuthType("login")}
-                    className="text-indigo-500 font-medium"
-                    style={{ background: "none", border: "none", cursor: "pointer" }}
-                  >
-                    Sign in
-                  </button>
-                </span>
-              )}
-            </div>
-
-    
-            {authType === "login" ? (
-              <SignIn appearance={clerkAppearance} redirectUrl={null} />
-            ) : (
-              <SignUp appearance={clerkAppearance} redirectUrl={null} />
-            )}
+        {isSignup && (
+          <div className="w-full">
+            <p className="text-black">Name</p>
+            <input
+              value={form.name}
+              onChange={(e) => setForm({ ...form, name: e.target.value })}
+              className="border border-gray-200 rounded w-full p-2 mt-1 outline-indigo-500 text-black placeholder-gray-400"
+              type="text"
+              placeholder="Enter name"
+              required
+            />
           </div>
         )}
-      </div>
+
+        <div className="w-full">
+          <p className="text-black">Email</p>
+          <input
+            value={form.email}
+            onChange={(e) => setForm({ ...form, email: e.target.value })}
+            className="border border-gray-200 rounded w-full p-2 mt-1 outline-indigo-500 text-black placeholder-gray-400"
+            type="email"
+            placeholder="Enter email"
+            required
+          />
+        </div>
+
+        <div className="w-full">
+          <p className="text-black">Password</p>
+          <input
+            value={form.password}
+            onChange={(e) => setForm({ ...form, password: e.target.value })}
+            className="border border-gray-200 rounded w-full p-2 mt-1 outline-indigo-500 text-black placeholder-gray-400"
+            type="password"
+            placeholder="Enter password"
+            required
+          />
+        </div>
+
+        <button
+          type="button"
+          onClick={handleGoogleLogin}
+          className="bg-gray-100 text-black w-full py-2 rounded-md flex justify-center items-center gap-2 border mt-2"
+        >
+          <img
+            src="https://developers.google.com/identity/images/g-logo.png"
+            alt="Google"
+            className="w-5 h-5"
+          />
+          Continue with Google
+        </button>
+
+        <button
+          type="submit"
+          className="bg-indigo-500 hover:bg-indigo-600 text-white w-full py-2 rounded-md mt-2"
+        >
+          {isSignup ? "Create Account" : "Login"}
+        </button>
+
+        <p className="text-sm text-center w-full text-black">
+          {isSignup ? "Already have an account?" : "Don't have an account?"}
+          <span
+            onClick={() => setIsSignup(!isSignup)}
+            className="text-indigo-400 ml-1 cursor-pointer font-medium"
+          >
+            {isSignup ? "Login here" : "Sign up"}
+          </span>
+        </p>
+      </form>
     </HomeLayout>
   );
 };

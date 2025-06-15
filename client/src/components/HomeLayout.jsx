@@ -12,12 +12,12 @@ const HomeLayout = ({ children }) => {
       {/* Navbar */}
       <header className="flex justify-between items-center px-6 py-4 bg-gray-800/80 backdrop-blur-md shadow-md z-10 relative">
         <h1 className="text-2xl font-bold text-indigo-400">LearnX</h1>
-        <nav className="space-x-6 hidden md:flex">
+        <nav className="space-x-6 hidden md:flex ">
           <NavLink to="/" className="hover:text-indigo-300 transition">Home</NavLink>
           <NavLink to="/contact" className="hover:text-indigo-300 transition">Contact</NavLink>
           <NavLink to="/about" className="hover:text-indigo-300 transition">About Us</NavLink>
-          <NavLink to="/login" className="hover:text-indigo-300 transition">Login</NavLink>
-          <NavLink to="/signup" className="hover:bg-indigo-400 px-4 py-2 bg-white text-gray-900 rounded-md transition">Sign Up</NavLink>
+          <NavLink to="/select-role" className="hover:bg-indigo-400 px-4 py-2 bg-white text-gray-900 rounded-md transition">Login</NavLink>
+
         </nav>
       </header>
 
