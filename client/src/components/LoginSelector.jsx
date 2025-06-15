@@ -1,6 +1,9 @@
 import { useParams, useNavigate } from 'react-router-dom';
 import { useState } from 'react';
 import HomeLayout from './HomeLayout';
+import googleLogo from "../assets/google-logo.png";
+import {signInWithPopup,createUserWithEmailAndPassword,signInWithEmailAndPassword,updateProfile} from "firebase/auth";
+import { auth, googleProvider } from "../firebase";
 
 const LoginSelector = () => {
   const { role } = useParams();
@@ -8,15 +11,42 @@ const LoginSelector = () => {
   const [form, setForm] = useState({ name: "", email: "", password: "" });
   const navigate = useNavigate();
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    alert(`${isSignup ? "Signup" : "Login"} successful as ${role}`);
-    navigate(`/${role}/dashboard`);
+    const { email, password } = form;
+
+    try {
+      if (isSignup) {
+        const result = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(result.user, {
+          displayName: form.name,
+      });
+        console.log("Signup success:", result.user);
+        alert(`Signup successful as ${role}`);
+      } else {
+        const result = await signInWithEmailAndPassword(auth, email, password);
+        console.log("Login success:", result.user);
+        alert(`Login successful as ${role}`);
+      }
+
+      navigate(`/${role}/dashboard`);
+    } catch (error) {
+      console.error("Auth error:", error);
+      alert(error.message);
+    }
   };
 
-  const handleGoogleLogin = () => {
-    alert(`Logged in with Google as ${role}`);
-    navigate(`/${role}/dashboard`);
+  const handleGoogleLogin = async () => {
+    try {
+      const result = await signInWithPopup(auth, googleProvider);
+      const user = result.user;
+      console.log("Google user:", user);
+      alert(`Logged in with Google as ${role}`);
+      navigate(`/${role}/dashboard`);
+    } catch (error) {
+      console.error("Google login error:", error);
+      alert("Google login failed. Please try again.");
+    }
   };
 
   return (
@@ -36,7 +66,7 @@ const LoginSelector = () => {
             <input
               value={form.name}
               onChange={(e) => setForm({ ...form, name: e.target.value })}
-              className="border border-gray-200 rounded w-full p-2 mt-1 outline-indigo-500 text-black placeholder-gray-400"
+              className="border border-gray-200 rounded w-full p-2 mt-1 outline-indigo-500 text-black placeholder-gray-400 cursor-text"
               type="text"
               placeholder="Enter name"
               required
@@ -73,11 +103,7 @@ const LoginSelector = () => {
           onClick={handleGoogleLogin}
           className="bg-gray-100 text-black w-full py-2 rounded-md flex justify-center items-center gap-2 border mt-2"
         >
-          <img
-            src="https://developers.google.com/identity/images/g-logo.png"
-            alt="Google"
-            className="w-5 h-5"
-          />
+          <img src={googleLogo} alt="Google" className="w-6 h-5" />
           Continue with Google
         </button>
 
