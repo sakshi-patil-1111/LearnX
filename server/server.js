@@ -1,4 +1,5 @@
 import express from "express";
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import "dotenv/config";
 import connectDB from "./config/database.js";
@@ -7,11 +8,15 @@ import connectCloudinary from "./config/cloudinary.js";
 const app = express();
 const PORT = process.env.PORT || 8080;
 
-connectDB();
+await connectDB();
 connectCloudinary();
 
-app.use(cors());
+const allowedOrigins =['http://localhost:5173/']
+
 app.use(express.json());
+app.use(cookieParser());
+app.use(cors({origin:allowedOrigins, credentials:true}));
+
 
 app.get("/", (req, res) => {
   res.send("API Working");
