@@ -1,14 +1,8 @@
 import React, { useState } from "react";
-import { NavLink, useNavigate } from "react-router-dom";
-import PropTypes from "prop-types";
+import { NavLink } from "react-router-dom";
 
-const Navbar = ({ userType }) => {
+const Navbar = ({ userType = "teacher" }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
-
-  const handleLogout = () => {
-    navigate("/"); 
-  };
 
   const getNavLinks = () => {
     if (userType === "teacher") {
@@ -19,30 +13,22 @@ const Navbar = ({ userType }) => {
         { to: "/teacher/assignments", label: "Assignments" },
         { to: "/teacher/profile", label: "Profile" },
       ];
-    } else if (userType === "student") {
-      return [
-        { to: "/student/dashboard", label: "Dashboard" },
-        { to: "/student/All-Courses", label: "All Courses" },
-        { to: "/student/courses", label: "My Courses" },
-        { to: "/student/announcements", label: "Announcements" },
-        { to: "/student/downloads", label: "Downloads" },
-        { to: "/student/profile", label: "Profile" },
-      ];
     }
-    throw new Error("Invalid userType provided to Navbar component");
+    // Add more user types here if needed
+    return [];
   };
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 flex justify-between items-center px-6 py-4 bg-gray-800/90 backdrop-blur-md shadow-md z-50">
         <NavLink
-          to={userType === "teacher" ? "/teacher/dashboard" : "/student/dashboard"}
+          to="/"
           className="text-2xl font-bold text-indigo-400 hover:text-indigo-300 transition"
         >
           LearnX
         </NavLink>
 
-        {/* Desktop Navigation */}
+        {/* Desktop Nav */}
         <nav className="hidden md:flex items-center space-x-8">
           {getNavLinks().map((link) => (
             <NavLink
@@ -59,15 +45,12 @@ const Navbar = ({ userType }) => {
               {link.label}
             </NavLink>
           ))}
-          <button
-            onClick={handleLogout}
-            className="ml-4 px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition"
-          >
+          <button className="ml-4 px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition">
             Logout
           </button>
         </nav>
 
-        {/* Mobile Hamburger */}
+        {/* Mobile Toggle */}
         <div className="md:hidden">
           <button
             onClick={() => setIsMobileMenuOpen(true)}
@@ -78,10 +61,10 @@ const Navbar = ({ userType }) => {
         </div>
       </header>
 
-      {/* Spacer */}
+      {/* Spacer to prevent content from hiding under fixed navbar */}
       <div className="h-16"></div>
 
-      {/* Mobile Sidebar Menu */}
+      {/* Mobile Slide-in Menu */}
       {isMobileMenuOpen && (
         <>
           <div
@@ -122,11 +105,8 @@ const Navbar = ({ userType }) => {
 
               <div className="p-6 border-t border-gray-700">
                 <button
-                  onClick={() => {
-                    setIsMobileMenuOpen(false);
-                    handleLogout();
-                  }}
                   className="w-full px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition"
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Logout
                 </button>
@@ -137,10 +117,6 @@ const Navbar = ({ userType }) => {
       )}
     </>
   );
-};
-
-Navbar.propTypes = {
-  userType: PropTypes.oneOf(["teacher", "student"]).isRequired,
 };
 
 export default Navbar;
