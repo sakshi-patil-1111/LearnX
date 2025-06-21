@@ -1,7 +1,8 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
+import PropTypes from "prop-types";
 
-const Navbar = ({ userType = "teacher" }) => {
+const Navbar = ({ userType }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   const getNavLinks = () => {
@@ -13,22 +14,32 @@ const Navbar = ({ userType = "teacher" }) => {
         { to: "/teacher/assignments", label: "Assignments" },
         { to: "/teacher/profile", label: "Profile" },
       ];
+    } else if (userType === "student") {
+      return [
+        { to: "/student/dashboard", label: "Dashboard" },
+        { to: "/student/All-Courses", label: "All Courses" },
+        { to: "/student/courses", label: "My Courses" },
+        { to: "/student/announcements", label: "Announcements" },
+        { to: "/student/downloads", label: "Downloads" },
+        { to: "/student/profile", label: "Profile" },
+      ];
     }
-    // Add more user types here if needed
-    return [];
+    throw new Error("Invalid userType provided to Navbar component");
   };
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 flex justify-between items-center px-6 py-4 bg-gray-800/90 backdrop-blur-md shadow-md z-50">
         <NavLink
-          to="/"
+          to={
+            userType === "teacher" ? "/teacher/dashboard" : "/student/dashboard"
+          }
           className="text-2xl font-bold text-indigo-400 hover:text-indigo-300 transition"
         >
           LearnX
         </NavLink>
 
-        {/* Desktop Nav */}
+        {/* Desktop Navigation */}
         <nav className="hidden md:flex items-center space-x-8">
           {getNavLinks().map((link) => (
             <NavLink
@@ -50,7 +61,7 @@ const Navbar = ({ userType = "teacher" }) => {
           </button>
         </nav>
 
-        {/* Mobile Toggle */}
+        {/* Mobile Hamburger */}
         <div className="md:hidden">
           <button
             onClick={() => setIsMobileMenuOpen(true)}
@@ -61,10 +72,10 @@ const Navbar = ({ userType = "teacher" }) => {
         </div>
       </header>
 
-      {/* Spacer to prevent content from hiding under fixed navbar */}
+      {/* Spacer */}
       <div className="h-16"></div>
 
-      {/* Mobile Slide-in Menu */}
+      {/* Mobile Sidebar Menu */}
       {isMobileMenuOpen && (
         <>
           <div
@@ -117,6 +128,10 @@ const Navbar = ({ userType = "teacher" }) => {
       )}
     </>
   );
+};
+
+Navbar.propTypes = {
+  userType: PropTypes.oneOf(["teacher", "student"]).isRequired,
 };
 
 export default Navbar;
