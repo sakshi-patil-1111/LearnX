@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import PropTypes from "prop-types";
+import { useAppContext } from "../context/appContext";
 
-const Navbar = ({ userType }) => {
+const Navbar = ({ userType = "teacher" }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const { logout } = useAppContext();
 
   const getNavLinks = () => {
     if (userType === "teacher") {
@@ -38,8 +39,8 @@ const Navbar = ({ userType }) => {
         >
           LearnX
         </NavLink>
-
-        {/* Desktop Navigation */}
+        
+        {/* Desktop Nav */}
         <nav className="hidden md:flex items-center space-x-8">
           {getNavLinks().map((link) => (
             <NavLink
@@ -56,12 +57,13 @@ const Navbar = ({ userType }) => {
               {link.label}
             </NavLink>
           ))}
-          <button className="ml-4 px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition">
+          <button onClick={logout}
+           className="ml-4 px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition">
             Logout
           </button>
         </nav>
 
-        {/* Mobile Hamburger */}
+        {/* Mobile Toggle */}
         <div className="md:hidden">
           <button
             onClick={() => setIsMobileMenuOpen(true)}
@@ -72,10 +74,10 @@ const Navbar = ({ userType }) => {
         </div>
       </header>
 
-      {/* Spacer */}
+      {/* Spacer to prevent content from hiding under fixed navbar */}
       <div className="h-16"></div>
 
-      {/* Mobile Sidebar Menu */}
+      {/* Mobile Slide-in Menu */}
       {isMobileMenuOpen && (
         <>
           <div
@@ -115,9 +117,9 @@ const Navbar = ({ userType }) => {
               </div>
 
               <div className="p-6 border-t border-gray-700">
-                <button
+                <button 
                   className="w-full px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition"
-                  onClick={() => setIsMobileMenuOpen(false)}
+                  onClick={() =>{ setIsMobileMenuOpen(false); logout();}}
                 >
                   Logout
                 </button>
@@ -128,10 +130,6 @@ const Navbar = ({ userType }) => {
       )}
     </>
   );
-};
-
-Navbar.propTypes = {
-  userType: PropTypes.oneOf(["teacher", "student"]).isRequired,
 };
 
 export default Navbar;

@@ -1,7 +1,7 @@
 import React from 'react';
 import HomeLayout from './HomeLayout';
 
-const Front = () => {
+const Home = () => {
   return (
     <HomeLayout>
       <h2 className="text-4xl sm:text-5xl font-bold mb-6 leading-tight text-center">
@@ -27,4 +27,4 @@ const Front = () => {
   );
 };
 
-export default Front;
+export default Home;

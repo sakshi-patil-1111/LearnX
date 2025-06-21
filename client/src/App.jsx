@@ -1,8 +1,9 @@
 import React from "react";
 import { Routes, Route } from "react-router-dom";
 import Home from "./components/Home";
-import LoginSelector from "./components/LoginSelector"
+import LoginSelector from "./components/LoginSelector";
 import RoleSelect from "./components/RoleSelect";
+import PrivateRoute from "./components/PrivateRoute";
 
 // Student Pages
 import StudentDashboard from "./pages/student/StudentDashboard";
@@ -22,34 +23,131 @@ import Assignments from "./pages/Teacher/Assignments";
 import Profile from "./pages/Teacher/Profile";
 import TeacherAnnouncements from "./pages/Teacher/Announcements";
 
-
 const App = () => {
   return (
     <div className="min-h-screen">
+
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
-        <Route path="/select-role" element={<RoleSelect/>}/>
-        <Route path="/auth/:role" element={<LoginSelector/>}/>
+        <Route path="/select-role" element={<RoleSelect />} />
+        <Route path="/auth/:role" element={<LoginSelector />} />
 
         {/* Student Routes */}
-        <Route path="/student/dashboard" element={<StudentDashboard />} />
-        <Route path="/student/profile" element={<StudentProfile />} />
-        <Route path="/student/edit/profile" element={<StudentEditProfile />} />
-        <Route path="/student/All-Courses" element={<AllCourses />} />
-        <Route path="/student/courses" element={<MyCourses />} />
-        <Route path="/student/course/:courseId" element={<StudentCourseView />} />
-        
-        <Route path="/student/announcements" element={<StudentAnnouncements />} />
+        <Route
+          path="/student/dashboard"
+          element={
+            <PrivateRoute allowedRole="student">
+              <StudentDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/student/profile"
+          element={
+            <PrivateRoute allowedRole="student">
+              <StudentProfile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/student/edit/profile"
+          element={
+            <PrivateRoute allowedRole="student">
+              <StudentEditProfile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/student/All-Courses"
+          element={
+            <PrivateRoute allowedRole="student">
+              <AllCourses />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/student/courses"
+          element={
+            <PrivateRoute allowedRole="student">
+              <MyCourses />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/student/course/:courseId"
+          element={
+            <PrivateRoute allowedRole="student">
+              <StudentCourseView />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/student/announcements"
+          element={
+            <PrivateRoute allowedRole="student">
+              <StudentAnnouncements />
+            </PrivateRoute>
+          }
+        />
 
         {/* Teacher Routes */}
-        <Route path="/teacher/dashboard" element={<TeacherDashboard />} />
-        <Route path="/teacher/courses" element={<Courses />} />
-        <Route path="/teacher/courses/:courseId" element={<CourseDetail />} />
-        <Route path="/teacher/materials" element={<Materials />} />
-        <Route path="/teacher/assignments" element={<Assignments />} />
-        <Route path="/teacher/profile" element={<Profile />} />
-        <Route path="/teacher/announcements" element={<TeacherAnnouncements />} />
+        <Route
+          path="/teacher/dashboard"
+          element={
+            <PrivateRoute allowedRole="teacher">
+              <TeacherDashboard />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/teacher/courses"
+          element={
+            <PrivateRoute allowedRole="teacher">
+              <Courses />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/teacher/courses/:courseId"
+          element={
+            <PrivateRoute allowedRole="teacher">
+              <CourseDetail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/teacher/materials"
+          element={
+            <PrivateRoute allowedRole="teacher">
+              <Materials />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/teacher/assignments"
+          element={
+            <PrivateRoute allowedRole="teacher">
+              <Assignments />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/teacher/profile"
+          element={
+            <PrivateRoute allowedRole="teacher">
+              <Profile />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/teacher/announcements"
+          element={
+            <PrivateRoute allowedRole="teacher">
+              <TeacherAnnouncements />
+            </PrivateRoute>
+          }
+        />
       </Routes>
     </div>
   );

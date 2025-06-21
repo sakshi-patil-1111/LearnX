@@ -1,53 +1,104 @@
-import { useParams, useNavigate } from 'react-router-dom';
-import { useState } from 'react';
-import HomeLayout from './HomeLayout';
+import { useParams, useNavigate } from "react-router-dom";
+import { useState } from "react";
+import axios from "axios";
+import HomeLayout from "./HomeLayout";
 import googleLogo from "../assets/google-logo.png";
-import {signInWithPopup,createUserWithEmailAndPassword,signInWithEmailAndPassword,updateProfile} from "firebase/auth";
-import { auth, googleProvider } from "../firebase";
+import {
+  signInWithPopup,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+  updateProfile,
+  GoogleAuthProvider
+} from "firebase/auth";
+import { auth} from "../firebase";
+import { useAppContext } from "../context/appContext";
 
 const LoginSelector = () => {
   const { role } = useParams();
+  const navigate = useNavigate();
+  const { setUser, setIsTeacher } = useAppContext();
+
   const [isSignup, setIsSignup] = useState(false);
   const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const navigate = useNavigate();
+  const [loading, setLoading] = useState(false);
+
+  const handleFirebaseLogin = async (firebaseUser) => {
+    const idToken = await firebaseUser.getIdToken(true); 
+
+    const res = await axios.post(
+      "http://localhost:8080/api/users/verify",
+      { role ,name: firebaseUser.displayName}, 
+      {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+        withCredentials: true,
+      }
+    );
+
+    if (res.data.success) {
+      setUser(res.data.user);
+      setIsTeacher(res.data.user.role === "teacher");
+      alert("Login successful!");
+      navigate(`/${role}/dashboard`);
+    } else {
+      alert(res.data.message || "User verification failed");
+    }
+};
+
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const { email, password } = form;
+    const { email, password, name } = form;
 
     try {
+      setLoading(true);
+
+      let result;
       if (isSignup) {
-        const result = await createUserWithEmailAndPassword(auth, email, password);
-        await updateProfile(result.user, {
-          displayName: form.name,
-      });
-        console.log("Signup success:", result.user);
-        alert(`Signup successful as ${role}`);
+        result = await createUserWithEmailAndPassword(auth, email, password);
+        await updateProfile(result.user, { displayName: name });
+        await result.user.getIdToken(true); 
+
       } else {
-        const result = await signInWithEmailAndPassword(auth, email, password);
-        console.log("Login success:", result.user);
-        alert(`Login successful as ${role}`);
+        result = await signInWithEmailAndPassword(auth, email, password);
       }
 
-      navigate(`/${role}/dashboard`);
+      await handleFirebaseLogin(result.user);
+      
     } catch (error) {
-      console.error("Auth error:", error);
-      alert(error.message);
+    const message = error.response?.data?.message ||error.message ||"Something went wrong. Please try again.";
+
+    console.error("Auth error:", message);
+    alert(message);
+
+  }finally {
+      setLoading(false);
     }
   };
 
   const handleGoogleLogin = async () => {
     try {
-      const result = await signInWithPopup(auth, googleProvider);
-      const user = result.user;
-      console.log("Google user:", user);
-      alert(`Logged in with Google as ${role}`);
-      navigate(`/${role}/dashboard`);
+      setLoading(true);
+
+      const provider = new GoogleAuthProvider();
+      provider.addScope("email");
+      provider.setCustomParameters({ prompt: "select_account" });
+
+      const result = await signInWithPopup(auth, provider);
+      console.log("Full Google user:", result.user);
+      await handleFirebaseLogin(result.user);
+
     } catch (error) {
-      console.error("Google login error:", error);
-      alert("Google login failed. Please try again.");
+    const message = error.response?.data?.message ||error.message ||"Something went wrong. Please try again.";
+
+    console.error("Google login error:", message);
+    alert(message);
+
+  } finally {
+      setLoading(false);
     }
-  };
+};
 
   return (
     <HomeLayout>
@@ -102,6 +153,7 @@ const LoginSelector = () => {
           type="button"
           onClick={handleGoogleLogin}
           className="bg-gray-100 text-black w-full py-2 rounded-md flex justify-center items-center gap-2 border mt-2"
+          disabled={loading}
         >
           <img src={googleLogo} alt="Google" className="w-6 h-5" />
           Continue with Google
@@ -110,8 +162,13 @@ const LoginSelector = () => {
         <button
           type="submit"
           className="bg-indigo-500 hover:bg-indigo-600 text-white w-full py-2 rounded-md mt-2"
+          disabled={loading}
         >
-          {isSignup ? "Create Account" : "Login"}
+          {loading
+            ? "Please wait..."
+            : isSignup
+            ? "Create Account"
+            : "Login"}
         </button>
 
         <p className="text-sm text-center w-full text-black">
