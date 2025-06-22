@@ -5,6 +5,10 @@ import "dotenv/config";
 import connectDB from "./config/database.js";
 import connectCloudinary from "./config/cloudinary.js";
 import userRoutes from "./routes/userRoutes.js";
+import studentRoutes from "./routes/studentRoutes.js";
+import teacherRoutes from "./routes/teacherRoutes.js";
+
+
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -27,6 +31,8 @@ app.get("/", (req, res) => {
 
 //routes
 app.use("/api/users", userRoutes);
+app.use("/api/users/student", studentRoutes);
+app.use("/api/users/teacher", teacherRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);

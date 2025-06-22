@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 import axios from "axios";
 import { auth } from "../../firebase"; // your firebase config
-
+import { Link } from "react-router-dom"; 
 const TeacherProfile = () => {
   const [teacher, setTeacher] = useState(null);
 
@@ -63,9 +63,11 @@ const TeacherProfile = () => {
                   <h1 className="text-2xl font-bold text-indigo-400">{teacher.name}</h1>
                   <p className="text-gray-400">{teacher.email}</p>
                 </div>
-                <button className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition">
-                  Edit Profile
-                </button>
+               <Link to="/teacher/edit/profile">
+  <button className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition">
+    Edit Profile
+  </button>
+</Link>
               </div>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">

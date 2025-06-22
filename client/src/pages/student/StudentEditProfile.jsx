@@ -1,31 +1,58 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import axios from "axios";
+import { getAuth } from "firebase/auth";
 
 const StudentEditProfile = () => {
   const navigate = useNavigate();
+  const [formData, setFormData] = useState(null);
+  const auth = getAuth();
 
-  const [formData, setFormData] = useState({
-    name: "Sweta Sharma",
-    email: "sweta123@learnx.edu.in",
-    rollNo: "CSE2023-0421",
-    bio: "Final year Computer Science student passionate about AI, web development, and contributing to open-source.",
-    course: "B.Tech in Computer Science",
-    semester: "6th Semester",
-    avatar:
-      "https://api.dicebear.com/8.x/thumbs/svg?seed=Sweta&backgroundColor=f0f0f0&scale=90",
-  });
+  useEffect(() => {
+    const fetchProfile = async () => {
+      const user = auth.currentUser;
+      if (!user) return;
+
+      const token = await user.getIdToken();
+      const res = await axios.get("http://localhost:8080/api/users/student/profile", {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setFormData(res.data.student);
+    };
+
+    fetchProfile();
+  }, []);
 
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    console.log("Updated Data:", formData);
-    alert("Profile updated successfully!");
-    navigate("/student/dashboard");
+    try {
+      const user = auth.currentUser;
+      if (!user) return alert("User not authenticated");
+
+      const token = await user.getIdToken();
+
+      await axios.put(
+        "http://localhost:8080/api/users/student/profile",
+        formData,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+
+      alert("Profile updated successfully!");
+      navigate("/student/dashboard");
+    } catch (err) {
+      console.error("Update failed:", err);
+      alert("Failed to update profile.");
+    }
   };
+
+  if (!formData) return <div className="text-center text-white mt-10">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white px-6 py-10">
@@ -38,7 +65,7 @@ const StudentEditProfile = () => {
           onSubmit={handleSubmit}
           className="grid grid-cols-1 md:grid-cols-2 gap-6"
         >
-          {/* Avatar Preview and URL */}
+          {/* Avatar Preview */}
           <div className="md:col-span-2 flex flex-col items-center">
             <img
               src={formData.avatar}
@@ -48,72 +75,33 @@ const StudentEditProfile = () => {
             <input
               type="text"
               name="avatar"
-              placeholder="Avatar URL"
               value={formData.avatar}
               onChange={handleChange}
-              className="w-full md:w-1/2 px-4 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full md:w-1/2 px-4 py-2 bg-gray-800 text-white rounded-md border border-gray-700"
             />
           </div>
 
-          <div>
-            <label className="block text-sm mb-1 text-gray-300">Name</label>
-            <input
-              type="text"
-              name="name"
-              value={formData.name}
-              onChange={handleChange}
-              className="w-full px-4 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
+          {/* Other Inputs */}
+          {[
+            ["Name", "name"],
+            ["Email", "email"],
+            ["Roll Number", "rollNo"],
+            ["Semester", "semester"],
+            ["Course", "course"],
+          ].map(([label, name]) => (
+            <div key={name} className={name === "course" ? "md:col-span-2" : ""}>
+              <label className="block text-sm mb-1 text-gray-300">{label}</label>
+              <input
+                type="text"
+                name={name}
+                value={formData[name]}
+                onChange={handleChange}
+                className="w-full px-4 py-2 bg-gray-800 text-white rounded-md border border-gray-700"
+              />
+            </div>
+          ))}
 
-          <div>
-            <label className="block text-sm mb-1 text-gray-300">Email</label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              className="w-full px-4 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm mb-1 text-gray-300">
-              Roll Number
-            </label>
-            <input
-              type="text"
-              name="rollNo"
-              value={formData.rollNo}
-              onChange={handleChange}
-              className="w-full px-4 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm mb-1 text-gray-300">
-              Semester
-            </label>
-            <input
-              type="text"
-              name="semester"
-              value={formData.semester}
-              onChange={handleChange}
-              className="w-full px-4 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-
-          <div className="md:col-span-2">
-            <label className="block text-sm mb-1 text-gray-300">Course</label>
-            <input
-              type="text"
-              name="course"
-              value={formData.course}
-              onChange={handleChange}
-              className="w-full px-4 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
-            />
-          </div>
-
+          {/* Bio */}
           <div className="md:col-span-2">
             <label className="block text-sm mb-1 text-gray-300">Bio</label>
             <textarea
@@ -121,7 +109,7 @@ const StudentEditProfile = () => {
               rows="4"
               value={formData.bio}
               onChange={handleChange}
-              className="w-full px-4 py-2 bg-gray-800 text-white rounded-md border border-gray-700 focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-4 py-2 bg-gray-800 text-white rounded-md border border-gray-700"
             ></textarea>
           </div>
 
