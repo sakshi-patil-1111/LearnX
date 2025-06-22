@@ -41,6 +41,7 @@ const LoginSelector = () => {
       setIsTeacher(res.data.user.role === "teacher");
       alert("Login successful!");
       navigate(`/${role}/dashboard`);
+      console.log(idToken);
     } else {
       alert(res.data.message || "User verification failed");
     }

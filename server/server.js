@@ -7,7 +7,7 @@ import connectCloudinary from "./config/cloudinary.js";
 import userRoutes from "./routes/userRoutes.js";
 import studentRoutes from "./routes/studentRoutes.js";
 import teacherRoutes from "./routes/teacherRoutes.js";
-
+import courseRoutes from "./routes/courseRoutes.js";
 
 
 const app = express();
@@ -33,6 +33,8 @@ app.get("/", (req, res) => {
 app.use("/api/users", userRoutes);
 app.use("/api/users/student", studentRoutes);
 app.use("/api/users/teacher", teacherRoutes);
+app.use("/api/courses", courseRoutes);
+
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
