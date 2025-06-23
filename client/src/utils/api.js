@@ -156,4 +156,37 @@ export const getUserEnrolledCourses = async () => {
   return res.data;
 };
 
+export const fetchStudentAssignments = async () => {
+  const token = await auth.currentUser.getIdToken();
+  const res = await axios.get(`${API_BASE}/assignments/student`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
+};
+
+
+export const submitAssignment = async (assignmentId, file) => {
+  const user = auth.currentUser;
+  if (!user) throw new Error("User not logged in");
+
+  const token = await user.getIdToken();
+  const formData = new FormData();
+  formData.append("file", file);
+
+  const res = await axios.post(
+    `${API_BASE}/assignments/${assignmentId}/submit`,
+    formData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+
+  return res.data;
+};
+
 

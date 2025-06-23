@@ -109,3 +109,59 @@ export const getAssignmentSubmissions = async (req, res) => {
     res.status(500).json({ success: false, message: "Server error" });
   }
 };
+// GET /api/assignments/student
+export const getStudentAssignments = async (req, res) => {
+  try {
+    const user = await User.findOne({ uid: req.user.uid }).populate("enrolledCourses");
+
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    const courseIds = user.enrolledCourses.map((c) => c._id);
+
+    const assignments = await Assignment.find({ course: { $in: courseIds } })
+      .populate("course", "title") // to include course title
+      .sort({ dueDate: 1 });
+
+    res.json(assignments);
+  } catch (err) {
+    console.error("Error fetching student assignments:", err);
+    res.status(500).json({ message: "Failed to fetch assignments" });
+  }
+};
+
+
+export const submitAssignment = async (req, res) => {
+  const { assignmentId } = req.params;
+  const studentId = req.user.uid;
+
+  try {
+    const assignment = await Assignment.findById(assignmentId);
+    if (!assignment) return res.status(404).json({ message: "Assignment not found" });
+
+    const now = new Date();
+    if (now > new Date(assignment.dueDate))
+      return res.status(400).json({ message: "Deadline has passed" });
+
+    const alreadySubmitted = assignment.submissions.some((s) => s.studentId === studentId);
+    if (alreadySubmitted)
+      return res.status(400).json({ message: "Already submitted" });
+
+    if (!req.file)
+      return res.status(400).json({ message: "File required" });
+
+    const upload = await uploadToCloudinary(req.file.path, "assignments");
+
+    assignment.submissions.push({
+      studentId,
+      fileUrl: upload.secure_url,
+      submittedAt: now,
+    });
+
+    await assignment.save();
+
+    res.status(200).json({ message: "Submission successful", fileUrl: upload.secure_url });
+  } catch (err) {
+    console.error("Submission error:", err);
+    res.status(500).json({ message: "Failed to submit assignment" });
+  }
+};

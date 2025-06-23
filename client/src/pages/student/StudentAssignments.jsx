@@ -1,130 +1,169 @@
-import React, { useState } from "react";
-
-const dummyAssignments = [
-  {
-    _id: "1",
-    title: "Math Assignment 1",
-    description: "Solve the questions from chapter 3.",
-    dueDate: "2025-06-30T23:59:59",
-    course: { title: "Mathematics" },
-    fileUrl: "#",
-    submissions: [],
-  },
-  {
-    _id: "2",
-    title: "Physics Lab Report",
-    description: "Write a report on Newton's laws experiment.",
-    dueDate: "2025-06-28T23:59:59",
-    course: { title: "Physics" },
-    fileUrl: "#",
-    submissions: [
-      {
-        studentId: "dummy-student-id",
-        submittedAt: "2025-06-24T15:30:00",
-        fileUrl: "#",
-      },
-    ],
-  },
-];
+import React, { useEffect, useState } from "react";
+import { fetchStudentAssignments, submitAssignment } from "../../utils/api";
+import Navbar from "../../components/Navbar";
+import { getAuth } from "firebase/auth";
 
 const StudentAssignments = () => {
-  const [assignments, setAssignments] = useState(dummyAssignments);
-  const dummyStudentId = "dummy-student-id";
+  const [assignments, setAssignments] = useState([]);
+  const [submittingId, setSubmittingId] = useState(null);
+  const [selectedFiles, setSelectedFiles] = useState({});
+  const currentUserId = getAuth().currentUser?.uid;
 
-  const handleSubmit = (e, assignmentId) => {
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const data = await fetchStudentAssignments();
+        setAssignments(data);
+      } catch (err) {
+        console.error("Failed to load assignments:", err);
+      }
+    };
+    load();
+  }, []);
+
+  const handleSubmit = async (e, assignmentId) => {
     e.preventDefault();
     const file = e.target.file.files[0];
     if (!file) return alert("Please select a file.");
 
-    const now = new Date().toISOString();
-
-    const updated = assignments.map((a) =>
-      a._id === assignmentId
-        ? {
-            ...a,
-            submissions: [
-              ...a.submissions,
-              {
-                studentId: dummyStudentId,
-                submittedAt: now,
-                fileUrl: "#",
-              },
-            ],
-          }
-        : a
-    );
-
-    setAssignments(updated);
-    alert("Dummy submission successful!");
+    try {
+      setSubmittingId(assignmentId);
+      await submitAssignment(assignmentId, file);
+      setSelectedFiles((prev) => ({ ...prev, [assignmentId]: null }));
+      const updated = await fetchStudentAssignments();
+      setAssignments(updated);
+    } catch (err) {
+      console.error("Submission error:", err);
+      alert(err?.response?.data?.message || "Submission failed");
+    } finally {
+      setSubmittingId(null);
+    }
   };
 
   return (
-    <div className="p-4 max-w-3xl mx-auto">
-      <h2 className="text-2xl font-semibold mb-4">My Assignments</h2>
-      {assignments.map((assignment) => {
-        const isLate = new Date() > new Date(assignment.dueDate);
-        const submission = assignment.submissions.find(
-          (s) => s.studentId === dummyStudentId
-        );
+    <div className="min-h-screen bg-gray-900 text-white relative">
+      <Navbar userType="student" />
+      <div className="p-6">
+        {/* Glowing background effects */}
+        <div className="absolute top-10 left-10 w-72 h-72 bg-indigo-500 opacity-20 rounded-full blur-3xl" />
+        <div className="absolute bottom-0 right-0 w-80 h-80 bg-blue-400 opacity-10 rounded-full blur-2xl" />
 
-        return (
-          <div
-            key={assignment._id}
-            className="bg-white shadow-md rounded-lg p-4 mb-6"
-          >
-            <h3 className="text-xl font-bold">{assignment.title}</h3>
-            <p className="text-gray-700">{assignment.description}</p>
-            <p className="text-sm text-gray-500 mt-1">
-              Course: <strong>{assignment.course.title}</strong>
-            </p>
-            <p className="text-sm text-gray-500">
-              Due: {new Date(assignment.dueDate).toLocaleString()}
-            </p>
-            <div className="mt-2">
-              <a
-                href={assignment.fileUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="text-blue-600 underline"
-              >
-                Download Assignment
-              </a>
-            </div>
+        <div className="max-w-7xl mx-auto relative z-10">
+          <h2 className="text-4xl font-bold text-indigo-400 mb-12 text-center">
+            📚 My Assignments
+          </h2>
 
-            {submission ? (
-              <div className="mt-3 text-green-600 text-sm">
-                Submitted on:{" "}
-                {new Date(submission.submittedAt).toLocaleString()}
-              </div>
-            ) : isLate ? (
-              <div className="mt-3 text-red-600 text-sm">
-                Submission closed (Deadline passed)
-              </div>
-            ) : (
-              <form
-                className="mt-4"
-                onSubmit={(e) => handleSubmit(e, assignment._id)}
-              >
-                <label className="block text-sm font-medium mb-1">
-                  Upload your solution:
-                </label>
-                <input
-                  type="file"
-                  name="file"
-                  accept=".pdf,.txt"
-                  className="mb-2"
-                />
-                <button
-                  type="submit"
-                  className="bg-primary text-white px-4 py-1 rounded hover:bg-primary-dull"
+          <div className="space-y-12">
+            {assignments.map((assignment) => {
+              const submission = assignment.submissions?.find(
+                (s) => s.studentId === currentUserId
+              );
+              const isLate = new Date() > new Date(assignment.dueDate);
+
+              return (
+                <div
+                  key={assignment._id}
+                  className="bg-gray-800/80 border border-gray-700 rounded-2xl shadow-2xl p-8 backdrop-blur-lg hover:shadow-indigo-500/20 transition duration-300"
                 >
-                  Submit Assignment
-                </button>
-              </form>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    {/* Left: Assignment Info */}
+                    <div className="col-span-2 space-y-3">
+                      <h3 className="text-2xl font-bold text-indigo-300">
+                        {assignment.title}
+                      </h3>
+                      <p className="text-gray-200">{assignment.description}</p>
+                      <div className="text-sm text-gray-400">
+                        <strong>Course:</strong> {assignment.course?.title || "Unknown"}
+                      </div>
+                      <div className="text-sm text-gray-400">
+                        <strong>Due:</strong>{" "}
+                        {new Date(assignment.dueDate).toLocaleString()}
+                      </div>
+                    </div>
+
+                    {/* Right: Actions */}
+                    <div className="space-y-4 flex flex-col justify-between">
+                      <a
+                        href={assignment.fileUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg font-medium text-center transition"
+                      >
+                        📥 Download File
+                      </a>
+
+                      {submission ? (
+                        <div className="bg-green-500/10 border border-green-500 rounded-lg p-3 text-sm">
+                          <p className="text-green-400 font-semibold">
+                            ✅ Submitted on{" "}
+                            {new Date(submission.submittedAt).toLocaleString()}
+                          </p>
+                          <p className="text-gray-300 break-all mt-1">
+                            📄{" "}
+                            <a
+                              href={submission.fileUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              className="text-blue-400 underline"
+                            >
+                              {submission.fileUrl.split("/").pop().split("?")[0]}
+                            </a>
+                          </p>
+                        </div>
+                      ) : isLate ? (
+                        <div className="text-red-400 font-semibold text-sm mt-2">
+                          ❌ Deadline passed
+                        </div>
+                      ) : (
+                        <form onSubmit={(e) => handleSubmit(e, assignment._id)} className="space-y-3">
+                          <label className="bg-white/10 text-white px-4 py-2 rounded-lg font-medium text-sm cursor-pointer border border-gray-600 hover:bg-white/20 transition block text-center">
+                            📁 Choose File
+                            <input
+                              type="file"
+                              name="file"
+                              accept=".pdf,.txt"
+                              className="hidden"
+                              required
+                              onChange={(e) =>
+                                setSelectedFiles((prev) => ({
+                                  ...prev,
+                                  [assignment._id]: e.target.files[0]?.name || "",
+                                }))
+                              }
+                            />
+                          </label>
+
+                          {selectedFiles[assignment._id] && (
+                            <div className="text-sm text-gray-300 font-mono break-all">
+                              📄 {selectedFiles[assignment._id]}
+                            </div>
+                          )}
+
+                          <button
+                            type="submit"
+                            disabled={submittingId === assignment._id}
+                            className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium w-full transition"
+                          >
+                            {submittingId === assignment._id
+                              ? "Submitting..."
+                              : "Submit Assignment"}
+                          </button>
+                        </form>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+
+            {assignments.length === 0 && (
+              <div className="text-gray-400 text-center mt-20 text-lg font-medium">
+                No assignments available from your enrolled courses.
+              </div>
             )}
           </div>
-        );
-      })}
+        </div>
+      </div>
     </div>
   );
 };
