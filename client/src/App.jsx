@@ -13,6 +13,8 @@ import AllCourses from "./pages/student/AllCourses";
 import StudentCourseView from "./pages/student/StudentCourseView";
 import MyCourses from "./pages/student/MyCourses";
 import StudentAnnouncements from "./pages/student/Announcements";
+import StudentAssignments from "./pages/student/StudentAssignments";
+
 
 // Teacher Pages
 import TeacherDashboard from "./pages/Teacher/Dashboard";
@@ -25,7 +27,7 @@ import TeacherAnnouncements from "./pages/Teacher/Announcements";
 import TeacherEditProfile from "./pages/Teacher/TeacherEditProfile";
 import CourseEdit from "./pages/Teacher/CourseEdit";
 
-
+import AddAssignment from "./pages/Teacher/AddAssignment";
 const App = () => {
   return (
     <div className="min-h-screen">
@@ -50,6 +52,15 @@ const App = () => {
           element={
             <PrivateRoute allowedRole="student">
               <StudentProfile />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/student/assignments"
+          element={
+            <PrivateRoute allowedRole="student">
+              <StudentAssignments />
             </PrivateRoute>
           }
         />
@@ -132,6 +143,15 @@ const App = () => {
           element={
             <PrivateRoute allowedRole="teacher">
               <TeacherEditProfile />
+            </PrivateRoute>
+          }
+        />
+
+        <Route
+          path="/teacher/create-assignment"
+          element={
+            <PrivateRoute allowedRole="teacher">
+              <AddAssignment/>
             </PrivateRoute>
           }
         />
