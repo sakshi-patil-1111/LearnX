@@ -32,6 +32,10 @@ const courseSchema = new mongoose.Schema(
       type: String,
       required: true,
     },
+    code: { 
+        type: String, 
+        required: true 
+    },
     thumbnail: {
       type: String,
       default: "https://placehold.co/600x400?text=Course+Thumbnail",
@@ -46,21 +50,13 @@ const courseSchema = new mongoose.Schema(
       default: "active",
     },
     createdBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: "User",
+      type: String, 
       required: true,
     },
 
-    // Embedded Materials
-    materials: [materialSchema],
+    enrolledStudents: [String],
 
-    // Enrolled Students
-    enrolledStudents: [
-      {
-        type: mongoose.Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
+    materials: [materialSchema],
 
     tags: [String],
   },

@@ -1,37 +1,94 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
+import {
+  fetchMyCourses,
+  getCourseById,
+  addMaterialToCourse,
+  deleteMaterialFromCourse,
+} from "../../utils/api";
 
 const Materials = () => {
-  // Mock data
-  const materials = [
-    {
-      id: 1,
-      title: "Algebra Notes",
-      course: "Mathematics 101",
-      type: "PDF",
-      size: "2.4 MB",
-      date: "1 day ago",
-      downloads: 45,
-    },
-    {
-      id: 2,
-      title: "Physics Lab Manual",
-      course: "Physics Advanced",
-      type: "PDF",
-      size: "4.1 MB",
-      date: "2 days ago",
-      downloads: 32,
-    },
-    {
-      id: 3,
-      title: "Chemical Reactions",
-      course: "Chemistry Basics",
-      type: "PDF",
-      size: "1.8 MB",
-      date: "4 days ago",
-      downloads: 28,
-    },
-  ];
+  const [courses, setCourses] = useState([]);
+  const [showUploadForm, setShowUploadForm] = useState(false);
+  const [selectedCourseId, setSelectedCourseId] = useState("");
+  const [newMaterial, setNewMaterial] = useState({
+    title: "",
+    materialType: "pdf",
+    materialUrl: "",
+    topic: "",
+  });
+  const [loading, setLoading] = useState(true);
+
+  // Fetch all courses created by this teacher
+  useEffect(() => {
+    const loadCourses = async () => {
+      try {
+        const res = await fetchMyCourses();
+        setCourses(res.courses || []);
+      } catch (err) {
+        console.error("Failed to fetch courses:", err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+    loadCourses();
+  }, []);
+
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setNewMaterial((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleUpload = async () => {
+    if (!selectedCourseId || !newMaterial.title || !newMaterial.materialUrl) {
+      alert("Please complete all fields.");
+      return;
+    }
+
+    try {
+      await addMaterialToCourse(selectedCourseId, newMaterial);
+
+      const updated = await getCourseById(selectedCourseId);
+      setCourses((prev) =>
+        prev.map((c) =>
+          c._id === selectedCourseId
+            ? { ...c, materials: updated.course.materials || [] }
+            : c
+        )
+      );
+
+      setNewMaterial({
+        title: "",
+        materialType: "pdf",
+        materialUrl: "",
+        topic: "",
+      });
+      setSelectedCourseId("");
+      setShowUploadForm(false);
+      alert("Material uploaded successfully!");
+    } catch (err) {
+      console.error("Upload failed:", err.message);
+      alert("Upload failed.");
+    }
+  };
+
+  const handleDeleteMaterial = async (courseId, materialId) => {
+  if (!window.confirm("Are you sure you want to delete this material?")) return;
+
+  try {
+    const res = await deleteMaterialFromCourse(courseId, materialId);
+    setCourses((prev) =>
+      prev.map((course) =>
+        course._id === courseId
+          ? { ...course, materials: res.materials }
+          : course
+      )
+    );
+  } catch (err) {
+    console.error("Failed to delete material:", err.message);
+  }
+};
+
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -45,90 +102,142 @@ const Materials = () => {
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex justify-between items-center mb-8">
             <h1 className="text-3xl font-bold text-indigo-400">
-              Course Materials
+              All Course Materials
             </h1>
-            <button className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition">
-              Upload New Material
+
+            <button
+              onClick={() => setShowUploadForm(!showUploadForm)}
+              className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition"
+            >
+              {showUploadForm ? "Cancel" : "Upload New Material"}
             </button>
           </div>
 
-          <div className="bg-gray-800/80 backdrop-blur-md rounded-lg shadow-lg overflow-hidden">
-            <div className="overflow-x-auto">
-              <table className="w-full">
-                <thead>
-                  <tr className="bg-gray-700/50">
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Title
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Course
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Type
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Size
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Downloads
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Date
-                    </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-400 uppercase tracking-wider">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="divide-y divide-gray-700">
-                  {materials.map((material) => (
-                    <tr
-                      key={material.id}
-                      className="hover:bg-gray-700/30 transition"
-                    >
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm font-medium text-white">
-                          {material.title}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <div className="text-sm text-gray-400">
-                          {material.course}
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="px-2 py-1 text-xs bg-blue-500/20 text-blue-400 rounded-full">
-                          {material.type}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                        {material.size}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                        {material.downloads}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-400">
-                        {material.date}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm">
-                        <div className="flex space-x-2">
-                          <button className="text-indigo-400 hover:text-indigo-300 transition">
-                            Download
-                          </button>
-                          <button className="text-gray-400 hover:text-gray-300 transition">
-                            Edit
-                          </button>
-                          <button className="text-red-400 hover:text-red-300 transition">
-                            Delete
-                          </button>
-                        </div>
-                      </td>
-                    </tr>
+          {/* Upload Form */}
+          {showUploadForm && (
+            <div className="bg-gray-800 rounded-lg p-6 mb-10">
+              <h2 className="text-xl font-semibold text-indigo-300 mb-4">
+                Upload New Material
+              </h2>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                <select
+                  value={selectedCourseId}
+                  onChange={(e) => setSelectedCourseId(e.target.value)}
+                  className="p-2 bg-gray-700 rounded text-white"
+                >
+                  <option value="">Select Course</option>
+                  {courses.map((course) => (
+                    <option key={course._id} value={course._id}>
+                      {course.title}
+                    </option>
                   ))}
-                </tbody>
-              </table>
+                </select>
+
+                <input
+                  type="text"
+                  name="title"
+                  value={newMaterial.title}
+                  onChange={handleInputChange}
+                  placeholder="Material Title"
+                  className="p-2 bg-gray-700 rounded text-white"
+                />
+                <input
+                  type="text"
+                  name="materialUrl"
+                  value={newMaterial.materialUrl}
+                  onChange={handleInputChange}
+                  placeholder="Material URL"
+                  className="p-2 bg-gray-700 rounded text-white"
+                />
+                <input
+                  type="text"
+                  name="topic"
+                  value={newMaterial.topic}
+                  onChange={handleInputChange}
+                  placeholder="Topic (optional)"
+                  className="p-2 bg-gray-700 rounded text-white"
+                />
+                <select
+                  name="materialType"
+                  value={newMaterial.materialType}
+                  onChange={handleInputChange}
+                  className="p-2 bg-gray-700 rounded text-white"
+                >
+                  <option value="pdf">PDF</option>
+                  <option value="video">Video</option>
+                  <option value="note">Note</option>
+                  <option value="link">Link</option>
+                </select>
+              </div>
+              <button
+                onClick={handleUpload}
+                className="px-4 py-2 bg-green-600 hover:bg-green-700 rounded"
+              >
+                Upload
+              </button>
             </div>
-          </div>
+          )}
+
+          {/* Materials by Course */}
+          {loading ? (
+            <p>Loading courses...</p>
+          ) : (
+            courses.map((course) => (
+              <div
+                key={course._id}
+                className="mb-10 bg-gray-800 rounded-lg shadow-md p-6"
+              >
+                <h2 className="text-xl font-bold text-indigo-300 mb-4">
+                  {course.title}
+                </h2>
+
+                {course.materials && course.materials.length > 0 ? (
+                  <table className="w-full text-left">
+                    <thead>
+                      <tr className="text-gray-400 border-b border-gray-700">
+                        <th className="p-2">Title</th>
+                        <th className="p-2">Type</th>
+                        <th className="p-2">Topic</th>
+                        <th className="p-2">Link</th>
+                        <th className="p-2">Uploaded</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {course.materials.map((mat, i) => (
+                        <tr key={i} className="border-t border-gray-700">
+                          <td className="p-2 text-white">{mat.title}</td>
+                          <td className="p-2 text-gray-400">{mat.materialType}</td>
+                          <td className="p-2 text-gray-400">{mat.topic}</td>
+                          <td className="p-2 text-blue-400">
+                            <a
+                              href={mat.materialUrl}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                            >
+                              Open
+                            </a>
+                          </td>
+                          <td className="p-2 text-gray-500">
+                            {new Date(mat.uploadedAt || Date.now()).toLocaleDateString()}
+                          </td>
+                          <td className="p-2">
+                            <button
+                              onClick={() => handleDeleteMaterial(course._id, mat._id)}
+                              className="px-3 py-1 text-sm rounded-md bg-indigo-500 hover:bg-indigo-600 text-white transition duration-200"
+                            >
+                              Delete
+                            </button>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                ) : (
+                  <p className="text-gray-400">No materials uploaded yet.</p>
+                )}
+              </div>
+            ))
+          )}
         </div>
       </div>
     </div>

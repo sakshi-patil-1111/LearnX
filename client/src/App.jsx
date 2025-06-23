@@ -23,6 +23,8 @@ import Assignments from "./pages/Teacher/Assignments";
 import Profile from "./pages/Teacher/Profile";
 import TeacherAnnouncements from "./pages/Teacher/Announcements";
 import TeacherEditProfile from "./pages/Teacher/TeacherEditProfile";
+import CourseEdit from "./pages/Teacher/CourseEdit";
+
 
 const App = () => {
   return (
@@ -114,6 +116,14 @@ const App = () => {
           element={
             <PrivateRoute allowedRole="teacher">
               <CourseDetail />
+            </PrivateRoute>
+          }
+        />
+        <Route
+          path="/teacher/courses/:courseId/edit"
+          element={
+            <PrivateRoute allowedRole="teacher">
+              <CourseEdit />
             </PrivateRoute>
           }
         />
