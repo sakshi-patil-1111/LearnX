@@ -1,5 +1,7 @@
 const API_BASE = "http://localhost:8080/api";
 import { auth } from "../firebase";
+import axios from "axios";
+
 
 export const getAuthToken = async () => {
   const user = auth.currentUser;
@@ -107,4 +109,49 @@ export const deleteMaterialFromCourse = async (courseId, materialId) => {
 
   if (!res.ok) throw new Error("Failed to delete material");
   return await res.json();
+};
+
+export const updateMaterialInCourse = async (courseId, materialId, materialData) => {
+  const user = auth.currentUser;
+  const token = user && (await user.getIdToken());
+
+  const res = await axios.put(
+    `${API_BASE}/courses/${courseId}/materials/${materialId}`,
+    materialData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+
+  return res.data;
+};
+
+export const fetchAllCourses = async () => {
+  const res = await axios.get(`${API_BASE}/courses`);
+  return res.data;
+};
+
+export const enrollInCourse = async (courseId) => {
+  const token = await getAuthToken(); 
+  const res = await axios.post(
+    `${API_BASE}/courses/enroll/${courseId}`,
+    {},
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+  return res.data;
+};
+
+
+export const getUserEnrolledCourses = async () => {
+  const token = await auth.currentUser.getIdToken(true);
+  const res = await axios.get(`${API_BASE}/courses/enrolled`, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
+  return res.data;
 };

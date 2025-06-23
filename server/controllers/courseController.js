@@ -33,15 +33,6 @@ export const createCourse = async (req, res) => {
   }
 };
 
-// Get all courses (public)
-export const getAllCourses = async (req, res) => {
-  try {
-    const courses = await Course.find().sort({ createdAt: -1 });
-    res.status(200).json({ success: true, courses });
-  } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to fetch courses" });
-  }
-};
 
 // Courses created by teacher
 export const getMyCourses = async (req, res) => {
@@ -60,7 +51,9 @@ export const getMyCourses = async (req, res) => {
 export const getCourseById = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id);
-    if (!course) return res.status(404).json({ success: false, message: "Course not found" });
+    if (!course) {
+      return res.status(404).json({ success: false, message: "Course not found" });
+    }
 
     const uid = req.user.uid?.trim();
     const createdBy = course.createdBy?.trim();
@@ -69,19 +62,24 @@ export const getCourseById = async (req, res) => {
     const isCreator = createdBy === uid;
     const isEnrolled = enrolled.includes(uid);
 
-    console.log({
-      uid,
-      createdBy,
-      isCreator,
-      enrolledStudents: enrolled,
-      isEnrolled
-    });
-
     if (!isCreator && !isEnrolled) {
       return res.status(403).json({ success: false, message: "Not authorized to view this course" });
     }
 
-    res.status(200).json({ success: true, course });
+    const instructor = await User.findOne({ uid: course.createdBy });
+    const fullStudents = await User.find({ uid: { $in: course.enrolledStudents } }).select(
+      "name email rollNo course semester uid"
+    );
+
+
+    res.status(200).json({
+      success: true,
+      course: {
+        ...course._doc,
+        instructorName: instructor?.name || "Unknown",
+        enrolledStudents: fullStudents, 
+      },
+    });
 
   } catch (err) {
     console.error("Error in getCourseById:", err);
@@ -92,28 +90,31 @@ export const getCourseById = async (req, res) => {
 // Enroll in a course (student only)
 export const enrollInCourse = async (req, res) => {
   try {
-    const student = await User.findOne({ uid: req.user.uid });
-    if (!student || student.role !== "student") {
-      return res.status(403).json({ success: false, message: "Only students can enroll" });
+    const uid = req.user.uid;
+    const courseId = req.params.courseId;
+
+    const user = await User.findOne({ uid });
+    const course = await Course.findById(courseId);
+
+    if (!user || !course) {
+      return res.status(404).json({ message: "User or course not found" });
     }
 
-    const course = await Course.findById(req.params.id);
-    if (!course) return res.status(404).json({ success: false, message: "Course not found" });
-
-    if (course.enrolledStudents.includes(student.uid)) {
-      return res.status(400).json({ success: false, message: "Already enrolled" });
+    // Avoid duplicate enrollments
+    if (!user.enrolledCourses.includes(courseId)) {
+      user.enrolledCourses.push(courseId);
+      await user.save();
     }
 
-    course.enrolledStudents.push(student.uid);
-    student.enrolledCourses.push(course._id);
+    if (!course.enrolledStudents.includes(uid)) {
+      course.enrolledStudents.push(uid);
+      await course.save();
+    }
 
-    await course.save();
-    await student.save();
-
-    res.status(200).json({ success: true, message: "Enrolled successfully" });
+    res.status(200).json({ message: "Enrolled successfully" });
   } catch (err) {
-    console.error("Enrollment error:", err);
-    res.status(500).json({ success: false, message: "Enrollment failed" });
+    console.error("Enrollment error:", err.message);
+    res.status(500).json({ message: "Server error" });
   }
 };
 
@@ -204,5 +205,86 @@ export const deleteMaterialFromCourse = async (req, res) => {
     res.json({ success: true, message: "Material deleted", materials: course.materials });
   } catch (err) {
     res.status(500).json({ success: false, message: "Failed to delete material" });
+  }
+};
+
+//to update materials
+export const updateMaterialInCourse = async (req, res) => {
+  const { courseId, materialId } = req.params;
+  const updates = req.body;
+
+  try {
+    const course = await Course.findById(courseId);
+    if (!course) return res.status(404).json({ message: "Course not found" });
+    console.log("All materials in course:", course.materials.map(m => m._id.toString()));
+    console.log("Requested material ID:", materialId);
+
+
+    // Find the material
+    const material = course.materials.find(
+      (mat) => mat._id.toString() === materialId
+    );
+    if (!material)
+      return res.status(404).json({ message: "Material not found" });
+
+    // Apply updates
+    Object.assign(material, updates);
+
+    await course.save();
+
+    res.status(200).json({ message: "Material updated", material });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+//all courses
+export const getAllCourses = async (req, res) => {
+  try {
+    const courses = await Course.find();
+
+    const enrichedCourses = await Promise.all(
+      courses.map(async (course) => {
+        const instructor = await User.findOne({ uid: course.createdBy }); 
+        return {
+          ...course._doc,
+          instructorName: instructor?.name || "Unknown",
+        };
+      })
+    );
+
+    res.status(200).json({ success: true, courses: enrichedCourses });
+  } catch (err) {
+    console.error("Fetch courses failed:", err.message);
+    res.status(500).json({ success: false, message: "Server error" });
+  }
+};
+
+//get all enrolled courses
+export const getEnrolledCourses = async (req, res) => {
+  try {
+    const userId = req.user.uid;
+    const user = await User.findOne({ uid: userId });
+
+    if (!user) {
+      return res.status(404).json({ message: "User not found" });
+    }
+
+    const courses = await Course.find({ _id: { $in: user.enrolledCourses } });
+    const enrichedCourses = await Promise.all(
+      courses.map(async (course) => {
+        const instructor = await User.findOne({ uid: course.createdBy });
+        return {
+          ...course._doc,
+          instructorName: instructor?.name || "Unknown",
+        };
+      })
+    );
+
+    res.json({ courses: enrichedCourses });
+  } catch (err) {
+    console.error("Failed to fetch enrolled courses:", err.message);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

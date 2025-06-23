@@ -78,7 +78,7 @@ const App = () => {
           }
         />
         <Route
-          path="/student/course/:courseId"
+          path="/student/courses/:courseId"
           element={
             <PrivateRoute allowedRole="student">
               <StudentCourseView />

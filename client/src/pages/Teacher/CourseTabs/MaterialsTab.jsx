@@ -1,5 +1,10 @@
 import React, { useEffect, useState } from "react";
-import { addMaterialToCourse, getCourseById, deleteMaterialFromCourse } from "../../../utils/api";
+import {
+  addMaterialToCourse,
+  getCourseById,
+  deleteMaterialFromCourse,
+  updateMaterialInCourse,
+} from "../../../utils/api";
 
 const MaterialsTab = ({ courseId }) => {
   const [materials, setMaterials] = useState([]);
@@ -9,10 +14,10 @@ const MaterialsTab = ({ courseId }) => {
     materialUrl: "",
     topic: "",
   });
+  const [editingMaterialId, setEditingMaterialId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [uploading, setUploading] = useState(false);
 
-  // Fetch course materials on mount
   useEffect(() => {
     const fetchCourseMaterials = async () => {
       try {
@@ -28,14 +33,12 @@ const MaterialsTab = ({ courseId }) => {
     fetchCourseMaterials();
   }, [courseId]);
 
-  // Handle input field changes
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setNewMaterial((prev) => ({ ...prev, [name]: value }));
   };
 
-  // Upload material
-  const handleUpload = async () => {
+  const handleUploadOrUpdate = async () => {
     if (!newMaterial.title || !newMaterial.materialUrl) {
       alert("Please fill in both title and material URL.");
       return;
@@ -43,47 +46,61 @@ const MaterialsTab = ({ courseId }) => {
 
     try {
       setUploading(true);
-      await addMaterialToCourse(courseId, newMaterial);
 
-      // Refresh materials
+      if (editingMaterialId) {
+        await updateMaterialInCourse(courseId, editingMaterialId, newMaterial);
+        alert("Material updated successfully!");
+      } else {
+        await addMaterialToCourse(courseId, newMaterial);
+        alert("Material uploaded successfully!");
+      }
+
       const updated = await getCourseById(courseId);
       setMaterials(updated.course.materials || []);
-
-      // Reset form
-      setNewMaterial({
-        title: "",
-        materialType: "pdf",
-        materialUrl: "",
-        topic: "",
-      });
-
-      alert("Material uploaded successfully!");
+      resetForm();
     } catch (err) {
-      console.error("Upload failed:", err.message);
-      alert("Upload failed. Please try again.");
+      console.error("Operation failed:", err.message);
+      alert("Failed to upload/update material. Please try again.");
     } finally {
       setUploading(false);
     }
   };
 
-  //to delete materials
-  const handleDeleteMaterial = async (materialId) => {
-  if (!window.confirm("Are you sure you want to delete this material?")) return;
+  const handleEditMaterial = (material) => {
+    setNewMaterial({
+      title: material.title,
+      materialType: material.materialType,
+      materialUrl: material.materialUrl,
+      topic: material.topic || "",
+    });
+    setEditingMaterialId(material._id);
+  };
 
-  try {
-    const res = await deleteMaterialFromCourse(courseId, materialId);
-    setMaterials(res.materials);
-  } catch (err) {
-    console.error("Failed to delete material:", err.message);
-    alert("Failed to delete material.");
-  }
-};
+  const handleDeleteInEditMode = async () => {
+    if (!window.confirm("Are you sure you want to delete this material?")) return;
+
+    try {
+      const res = await deleteMaterialFromCourse(courseId, editingMaterialId);
+      setMaterials(res.materials);
+      resetForm();
+    } catch (err) {
+      console.error("Delete failed:", err.message);
+      alert("Failed to delete material.");
+    }
+  };
+
+  const resetForm = () => {
+    setEditingMaterialId(null);
+    setNewMaterial({ title: "", materialType: "pdf", materialUrl: "", topic: "" });
+  };
 
   return (
     <div className="space-y-6">
-      {/* Upload form */}
+      {/* Upload/Edit Form */}
       <div className="bg-gray-800/80 backdrop-blur-md rounded-lg p-6">
-        <h3 className="text-xl font-bold text-indigo-400 mb-4">Upload New Material</h3>
+        <h3 className="text-xl font-bold text-indigo-400 mb-4">
+          {editingMaterialId ? "Edit Material" : "Upload New Material"}
+        </h3>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <input
             type="text"
@@ -121,18 +138,44 @@ const MaterialsTab = ({ courseId }) => {
             className="p-2 rounded bg-gray-700 text-white"
           />
         </div>
-        <button
-          onClick={handleUpload}
-          disabled={uploading}
-          className="mt-4 px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition disabled:opacity-50"
-        >
-          {uploading ? "Uploading..." : "Upload Material"}
-        </button>
+        <div className="mt-4 flex flex-wrap gap-3">
+          <button
+            onClick={handleUploadOrUpdate}
+            disabled={uploading}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-md transition disabled:opacity-50"
+          >
+            {uploading
+              ? editingMaterialId
+                ? "Updating..."
+                : "Uploading..."
+              : editingMaterialId
+              ? "Update Material"
+              : "Upload Material"}
+          </button>
+          {editingMaterialId && (
+            <>
+              <button
+                onClick={handleDeleteInEditMode}
+                className="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-md transition"
+              >
+                Delete
+              </button>
+              <button
+                onClick={resetForm}
+                className="px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-md transition"
+              >
+                Cancel
+              </button>
+            </>
+          )}
+        </div>
       </div>
 
       {/* Materials Table */}
       <div className="bg-gray-800/80 backdrop-blur-md rounded-lg overflow-hidden">
-        {materials.length === 0 ? (
+        {loading ? (
+          <p className="p-4 text-gray-400">Loading materials...</p>
+        ) : materials.length === 0 ? (
           <p className="p-4 text-gray-400">No materials uploaded yet.</p>
         ) : (
           <table className="w-full">
@@ -143,6 +186,7 @@ const MaterialsTab = ({ courseId }) => {
                 <th className="p-4">Topic</th>
                 <th className="p-4">URL</th>
                 <th className="p-4">Uploaded</th>
+                <th className="p-4">Action</th>
               </tr>
             </thead>
             <tbody>
@@ -152,7 +196,11 @@ const MaterialsTab = ({ courseId }) => {
                   <td className="p-4 text-gray-400">{material.materialType}</td>
                   <td className="p-4 text-gray-400">{material.topic || "—"}</td>
                   <td className="p-4 text-blue-400">
-                    <a href={material.materialUrl} target="_blank" rel="noopener noreferrer">
+                    <a
+                      href={material.materialUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
                       Open
                     </a>
                   </td>
@@ -160,13 +208,13 @@ const MaterialsTab = ({ courseId }) => {
                     {new Date(material.uploadedAt).toLocaleDateString()}
                   </td>
                   <td className="p-4">
-                  <button
-                    onClick={() => handleDeleteMaterial(material._id)}
-                    className="px-3 py-1 text-sm rounded-md bg-blue-600 hover:bg-blue-700 text-white transition duration-200"
-                  >
-                    Delete
-                  </button>
-                </td>
+                    <button
+                      onClick={() => handleEditMaterial(material)}
+                      className="px-3 py-1 text-sm rounded-md bg-blue-600 hover:bg-blue-700 text-white transition duration-200"
+                    >
+                      Edit
+                    </button>
+                  </td>
                 </tr>
               ))}
             </tbody>

@@ -4,6 +4,7 @@ import Navbar from "../../components/Navbar";
 import { getCourseById } from "../../utils/api";
 import { auth } from "../../firebase";
 import MaterialsTab from "./CourseTabs/MaterialsTab";
+import StudentsTab from "./CourseTabs/StudentsTab";
 
 const CourseDetail = () => {
   const { courseId } = useParams(); 
@@ -91,20 +92,7 @@ const CourseDetail = () => {
             )}
 
             {activeTab === "students" && (
-              <div className="space-y-4 bg-gray-800 p-6 rounded-md">
-                <h2 className="text-xl font-bold text-indigo-400">Enrolled Students</h2>
-                {course.enrolledStudents?.length > 0 ? (
-                  <ul className="space-y-2">
-                    {course.enrolledStudents.map((student) => (
-                      <li key={student._id} className="text-gray-300">
-                        {student.name} ({student.email})
-                      </li>
-                    ))}
-                  </ul>
-                ) : (
-                  <p className="text-gray-400">No students enrolled yet.</p>
-                )}
-              </div>
+              <StudentsTab students={course.enrolledStudents} />
             )}
 
             {activeTab === "materials" && (
