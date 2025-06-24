@@ -3,6 +3,7 @@ import Navbar from "../../components/Navbar";
 import {
   getUserEnrolledCourses,
   fetchStudentAssignments,
+  fetchAllAnnouncements,
 } from "../../utils/api";
 import axios from "axios";
 import { auth } from "../../firebase";
@@ -13,42 +14,9 @@ const Dashboard = () => {
   const [courses, setCourses] = useState([]);
   const [materials, setMaterials] = useState([]);
   const [assignments, setAssignments] = useState([]);
+  const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
-
-  // Announcements are still mock data
-  const announcements = [
-    {
-      id: 1,
-      title: "New Module Available",
-      course: "Data Structures and Algorithms",
-      content:
-        "We've just added a new module on Advanced Data Structures. Please complete it before the upcoming quiz.",
-      instructor: "Prof. Michael Chen",
-      date: "2 hours ago",
-      priority: "High",
-    },
-    {
-      id: 2,
-      title: "Assignment Deadline Extended",
-      course: "Web Development Fundamentals",
-      content:
-        "Due to technical issues, the deadline for the Web Development project has been extended by 2 days.",
-      instructor: "Dr. Emily Brown",
-      date: "1 day ago",
-      priority: "Medium",
-    },
-    {
-      id: 3,
-      title: "Course Schedule Update",
-      course: "Introduction to Programming",
-      content:
-        "The next live session for Introduction to Programming will be held on Friday at 2 PM instead of the regular time.",
-      instructor: "Dr. Sarah Johnson",
-      date: "2 days ago",
-      priority: "Low",
-    },
-  ];
 
   useEffect(() => {
     const fetchData = async () => {
@@ -84,15 +52,21 @@ const Dashboard = () => {
 
         // Fetch assignments
         const assignmentsRes = await fetchStudentAssignments();
-        // If assignmentsRes is an array, use it directly; if it's an object, use assignments property
         const assignmentsArr = Array.isArray(assignmentsRes)
           ? assignmentsRes
           : assignmentsRes.assignments || [];
-        // Sort by due date ascending
         assignmentsArr.sort(
           (a, b) => new Date(a.dueDate) - new Date(b.dueDate)
         );
         setAssignments(assignmentsArr.slice(0, 3));
+
+        // Fetch announcements
+        const announcementsRes = await fetchAllAnnouncements();
+        setAnnouncements(
+          (announcementsRes.announcements || [])
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .slice(0, 3)
+        );
       } catch (err) {
         setError("Failed to load dashboard data.");
       } finally {
@@ -122,6 +96,19 @@ const Dashboard = () => {
       </div>
     </div>
   );
+
+  const getPriorityColor = (priority) => {
+    switch ((priority || "").toLowerCase()) {
+      case "high":
+        return "bg-red-500/20 text-red-400";
+      case "medium":
+        return "bg-yellow-500/20 text-yellow-400";
+      case "low":
+        return "bg-green-500/20 text-green-400";
+      default:
+        return "bg-gray-500/20 text-gray-400";
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -232,12 +219,24 @@ const Dashboard = () => {
                   viewAllLink="/student/announcements"
                   renderItem={(item) => (
                     <div
-                      key={item.id}
+                      key={item._id}
                       className="border-b border-gray-700 last:border-0 pb-3 last:pb-0"
                     >
-                      <div className="text-white font-medium">{item.title}</div>
+                      <div className="text-white font-medium flex items-center gap-2">
+                        {item.title}
+                        <span
+                          className={`ml-2 px-2 py-0.5 rounded-full text-xs ${getPriorityColor(
+                            item.priority
+                          )}`}
+                        >
+                          {item.priority}
+                        </span>
+                      </div>
                       <div className="text-gray-400 text-sm">
-                        {item.course} • {item.date}
+                        {item.course} •{" "}
+                        {item.createdAt
+                          ? new Date(item.createdAt).toLocaleString()
+                          : ""}
                       </div>
                       <div className="text-gray-300 text-sm">
                         {item.content}

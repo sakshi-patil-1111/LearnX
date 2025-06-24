@@ -2,7 +2,6 @@ const API_BASE = "http://localhost:8080/api";
 import { auth } from "../firebase";
 import axios from "axios";
 
-
 export const getAuthToken = async () => {
   const user = auth.currentUser;
   if (!user) throw new Error("User not logged in");
@@ -44,7 +43,7 @@ export const createCourse = async (courseData) => {
 };
 
 export const getCourseById = async (courseId) => {
-  const token = await getAuthToken(); 
+  const token = await getAuthToken();
   const res = await fetch(`${API_BASE}/courses/${courseId}`, {
     headers: { Authorization: `Bearer ${token}` },
   });
@@ -99,19 +98,25 @@ export const deleteCourseById = async (courseId) => {
   return await res.json();
 };
 
-
 export const deleteMaterialFromCourse = async (courseId, materialId) => {
   const token = await getAuthToken();
-  const res = await fetch(`${API_BASE}/courses/${courseId}/material/${materialId}`, {
-    method: "DELETE",
-    headers: { Authorization: `Bearer ${token}` },
-  });
+  const res = await fetch(
+    `${API_BASE}/courses/${courseId}/material/${materialId}`,
+    {
+      method: "DELETE",
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
 
   if (!res.ok) throw new Error("Failed to delete material");
   return await res.json();
 };
 
-export const updateMaterialInCourse = async (courseId, materialId, materialData) => {
+export const updateMaterialInCourse = async (
+  courseId,
+  materialId,
+  materialData
+) => {
   const user = auth.currentUser;
   const token = user && (await user.getIdToken());
 
@@ -134,7 +139,7 @@ export const fetchAllCourses = async () => {
 };
 
 export const enrollInCourse = async (courseId) => {
-  const token = await getAuthToken(); 
+  const token = await getAuthToken();
   const res = await axios.post(
     `${API_BASE}/courses/enroll/${courseId}`,
     {},
@@ -144,7 +149,6 @@ export const enrollInCourse = async (courseId) => {
   );
   return res.data;
 };
-
 
 export const getUserEnrolledCourses = async () => {
   const token = await auth.currentUser.getIdToken(true);
@@ -165,7 +169,6 @@ export const fetchStudentAssignments = async () => {
   });
   return res.data;
 };
-
 
 export const submitAssignment = async (assignmentId, file) => {
   const user = auth.currentUser;
@@ -189,4 +192,59 @@ export const submitAssignment = async (assignmentId, file) => {
   return res.data;
 };
 
+// Fetch assignments created by the teacher
+export const fetchTeacherAssignments = async () => {
+  const token = await getAuthToken();
+  const res = await axios.get(`${API_BASE}/assignments/teacher`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
 
+// Placeholder for fetching teacher announcements (implement endpoint if available)
+export const fetchTeacherAnnouncements = async () => {
+  // TODO: Implement actual API call when endpoint is available
+  return [];
+};
+
+// Announcements API
+export const fetchAllAnnouncements = async () => {
+  const res = await axios.get("http://localhost:8080/api/announcements");
+  return res.data;
+};
+
+export const fetchAnnouncementsByCourse = async (course) => {
+  const res = await axios.get(
+    `http://localhost:8080/api/announcements/course/${course}`
+  );
+  return res.data;
+};
+
+export const createAnnouncement = async (announcementData) => {
+  const token = await getAuthToken();
+  const res = await axios.post(
+    "http://localhost:8080/api/announcements",
+    announcementData,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return res.data;
+};
+
+export const updateAnnouncement = async (id, announcementData) => {
+  const token = await getAuthToken();
+  const res = await axios.put(
+    `http://localhost:8080/api/announcements/${id}`,
+    announcementData,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return res.data;
+};
+
+export const deleteAnnouncement = async (id) => {
+  const token = await getAuthToken();
+  const res = await axios.delete(
+    `http://localhost:8080/api/announcements/${id}`,
+    { headers: { Authorization: `Bearer ${token}` } }
+  );
+  return res.data;
+};

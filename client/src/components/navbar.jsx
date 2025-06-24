@@ -11,6 +11,7 @@ const Navbar = ({ userType = "teacher" }) => {
         { to: "/teacher/courses", label: "Courses" },
         { to: "/teacher/materials", label: "Materials" },
         { to: "/teacher/assignments", label: "Assignments" },
+        { to: "/teacher/announcements", label: "Announcements" },
         { to: "/teacher/profile", label: "Profile" },
       ];
     }
@@ -21,6 +22,7 @@ const Navbar = ({ userType = "teacher" }) => {
         { to: "/student/courses", label: "My Courses" },
         { to: "/student/materials", label: "Materials" },
         { to: "/student/assignments", label: "Assignments" },
+        { to: "/student/announcements", label: "Announcements" },
         { to: "/student/profile", label: "Profile" },
       ];
     }
