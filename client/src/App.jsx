@@ -14,7 +14,7 @@ import StudentCourseView from "./pages/student/StudentCourseView";
 import MyCourses from "./pages/student/MyCourses";
 import StudentAnnouncements from "./pages/student/Announcements";
 import StudentAssignments from "./pages/student/StudentAssignments";
-
+import StudentMaterial from "./pages/student/StudentMaterial";
 
 // Teacher Pages
 import TeacherDashboard from "./pages/Teacher/Dashboard";
@@ -31,7 +31,6 @@ import AddAssignment from "./pages/Teacher/AddAssignment";
 const App = () => {
   return (
     <div className="min-h-screen">
-
       <Routes>
         {/* Public Routes */}
         <Route path="/" element={<Home />} />
@@ -104,6 +103,14 @@ const App = () => {
             </PrivateRoute>
           }
         />
+        <Route
+          path="/student/materials"
+          element={
+            <PrivateRoute allowedRole="student">
+              <StudentMaterial />
+            </PrivateRoute>
+          }
+        />
 
         {/* Teacher Routes */}
         <Route
@@ -138,7 +145,7 @@ const App = () => {
             </PrivateRoute>
           }
         />
-         <Route
+        <Route
           path="/teacher/edit/profile"
           element={
             <PrivateRoute allowedRole="teacher">
@@ -151,7 +158,7 @@ const App = () => {
           path="/teacher/create-assignment"
           element={
             <PrivateRoute allowedRole="teacher">
-              <AddAssignment/>
+              <AddAssignment />
             </PrivateRoute>
           }
         />

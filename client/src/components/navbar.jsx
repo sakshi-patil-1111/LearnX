@@ -1,10 +1,8 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { useAppContext } from "../context/appContext";
 
 const Navbar = ({ userType = "teacher" }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const { logout } = useAppContext();
 
   const getNavLinks = () => {
     if (userType === "teacher") {
@@ -15,31 +13,31 @@ const Navbar = ({ userType = "teacher" }) => {
         { to: "/teacher/assignments", label: "Assignments" },
         { to: "/teacher/profile", label: "Profile" },
       ];
-    } else if (userType === "student") {
+    }
+    if (userType === "student") {
       return [
         { to: "/student/dashboard", label: "Dashboard" },
         { to: "/student/All-Courses", label: "All Courses" },
         { to: "/student/courses", label: "My Courses" },
+        { to: "/student/materials", label: "Materials" },
         { to: "/student/assignments", label: "Assignments" },
-        { to: "/student/downloads", label: "Downloads" },
         { to: "/student/profile", label: "Profile" },
       ];
     }
-    throw new Error("Invalid userType provided to Navbar component");
+    // Add more user types here if needed
+    return [];
   };
 
   return (
     <>
       <header className="fixed top-0 left-0 right-0 flex justify-between items-center px-6 py-4 bg-gray-800/90 backdrop-blur-md shadow-md z-50">
         <NavLink
-          to={
-            userType === "teacher" ? "/teacher/dashboard" : "/student/dashboard"
-          }
+          to="/"
           className="text-2xl font-bold text-indigo-400 hover:text-indigo-300 transition"
         >
           LearnX
         </NavLink>
-        
+
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center space-x-8">
           {getNavLinks().map((link) => (
@@ -57,8 +55,7 @@ const Navbar = ({ userType = "teacher" }) => {
               {link.label}
             </NavLink>
           ))}
-          <button onClick={logout}
-           className="ml-4 px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition">
+          <button className="ml-4 px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition">
             Logout
           </button>
         </nav>
@@ -117,9 +114,9 @@ const Navbar = ({ userType = "teacher" }) => {
               </div>
 
               <div className="p-6 border-t border-gray-700">
-                <button 
+                <button
                   className="w-full px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition"
-                  onClick={() =>{ setIsMobileMenuOpen(false); logout();}}
+                  onClick={() => setIsMobileMenuOpen(false)}
                 >
                   Logout
                 </button>

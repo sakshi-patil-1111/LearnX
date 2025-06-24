@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { signOut } from "firebase/auth";
-import { auth } from "../firebase"; 
+import { auth } from "../firebase";
 
 const AppContext = createContext();
 
@@ -10,7 +10,6 @@ export const AppContextProvider = ({ children }) => {
 
   const [user, setUser] = useState(null); // student or teacher object
   const [isTeacher, setIsTeacher] = useState(false); // true if role is teacher
-
 
   useEffect(() => {
     const storedUser = localStorage.getItem("learnx_user");
@@ -33,10 +32,9 @@ export const AppContextProvider = ({ children }) => {
     }
   }, [user, isTeacher]);
 
-
   const logout = async () => {
     try {
-      await signOut(auth); 
+      await signOut(auth);
       setUser(null);
       setIsTeacher(false);
       localStorage.removeItem("learnx_user");
@@ -49,7 +47,6 @@ export const AppContextProvider = ({ children }) => {
     }
   };
 
-
   const value = {
     navigate,
     user,
@@ -59,11 +56,7 @@ export const AppContextProvider = ({ children }) => {
     logout,
   };
 
-  return (
-    <AppContext.Provider value={value}>
-      {children}
-    </AppContext.Provider>
-  );
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 };
 
 export const useAppContext = () => useContext(AppContext);
