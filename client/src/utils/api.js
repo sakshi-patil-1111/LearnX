@@ -53,15 +53,21 @@ export const getCourseById = async (courseId) => {
   return await res.json();
 };
 
-export const addMaterialToCourse = async (courseId, materialData) => {
+export const addMaterialToCourse = async (
+  courseId,
+  materialData,
+  isFormData = false
+) => {
   const token = await getAuthToken();
+  const headers = {
+    Authorization: `Bearer ${token}`,
+  };
+  if (!isFormData) headers["Content-Type"] = "multipart/form-data";
+
   const res = await fetch(`${API_BASE}/courses/${courseId}/material`, {
     method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    },
-    body: JSON.stringify(materialData),
+    headers,
+    body: isFormData ? materialData : JSON.stringify(materialData),
   });
 
   if (!res.ok) throw new Error("Failed to add material");

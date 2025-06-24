@@ -1,5 +1,7 @@
 import Course from "../models/Course.js";
 import User from "../models/User.js";
+import { uploadToCloudinary } from "../config/cloudinary.js";
+import path from "path";
 
 // Create a new course (teacher only)
 export const createCourse = async (req, res) => {
@@ -8,7 +10,9 @@ export const createCourse = async (req, res) => {
 
     const teacher = await User.findOne({ uid: req.user.uid });
     if (!teacher || teacher.role !== "teacher") {
-      return res.status(403).json({ success: false, message: "Only teachers can create courses" });
+      return res
+        .status(403)
+        .json({ success: false, message: "Only teachers can create courses" });
     }
 
     const course = new Course({
@@ -18,7 +22,7 @@ export const createCourse = async (req, res) => {
       category,
       thumbnail,
       tags,
-      createdBy: teacher.uid, 
+      createdBy: teacher.uid,
     });
 
     await course.save();
@@ -33,17 +37,21 @@ export const createCourse = async (req, res) => {
   }
 };
 
-
 // Courses created by teacher
 export const getMyCourses = async (req, res) => {
   try {
     const teacher = await User.findOne({ uid: req.user.uid });
-    if (!teacher) return res.status(404).json({ success: false, message: "User not found" });
+    if (!teacher)
+      return res
+        .status(404)
+        .json({ success: false, message: "User not found" });
 
     const courses = await Course.find({ createdBy: teacher.uid });
     res.json({ success: true, courses });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to fetch courses" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to fetch courses" });
   }
 };
 
@@ -52,35 +60,38 @@ export const getCourseById = async (req, res) => {
   try {
     const course = await Course.findById(req.params.id);
     if (!course) {
-      return res.status(404).json({ success: false, message: "Course not found" });
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
     }
 
     const uid = req.user.uid?.trim();
     const createdBy = course.createdBy?.trim();
-    const enrolled = (course.enrolledStudents || []).map(e => e.trim());
+    const enrolled = (course.enrolledStudents || []).map((e) => e.trim());
 
     const isCreator = createdBy === uid;
     const isEnrolled = enrolled.includes(uid);
 
     if (!isCreator && !isEnrolled) {
-      return res.status(403).json({ success: false, message: "Not authorized to view this course" });
+      return res.status(403).json({
+        success: false,
+        message: "Not authorized to view this course",
+      });
     }
 
     const instructor = await User.findOne({ uid: course.createdBy });
-    const fullStudents = await User.find({ uid: { $in: course.enrolledStudents } }).select(
-      "name email rollNo course semester uid"
-    );
-
+    const fullStudents = await User.find({
+      uid: { $in: course.enrolledStudents },
+    }).select("name email rollNo course semester uid");
 
     res.status(200).json({
       success: true,
       course: {
         ...course._doc,
         instructorName: instructor?.name || "Unknown",
-        enrolledStudents: fullStudents, 
+        enrolledStudents: fullStudents,
       },
     });
-
   } catch (err) {
     console.error("Error in getCourseById:", err);
     res.status(500).json({ success: false, message: "Error fetching course" });
@@ -121,7 +132,8 @@ export const enrollInCourse = async (req, res) => {
 // Add material to a course (teacher only)
 export const addMaterialToCourse = async (req, res) => {
   try {
-    const { title, materialType, materialUrl, topic } = req.body;
+    const { title, materialType, topic } = req.body;
+    let materialUrl = req.body.materialUrl;
 
     const course = await Course.findById(req.params.id);
     const teacher = await User.findOne({ uid: req.user.uid });
@@ -131,13 +143,28 @@ export const addMaterialToCourse = async (req, res) => {
     }
 
     if (course.createdBy !== teacher.uid) {
-      return res.status(403).json({ success: false, message: "You are not the owner of this course" });
+      return res.status(403).json({
+        success: false,
+        message: "You are not the owner of this course",
+      });
+    }
+
+    // If a file is uploaded, upload to Cloudinary
+    if (req.file) {
+      const result = await uploadToCloudinary(req.file.path, "materials");
+      materialUrl = result.secure_url;
+
+      console.log(materialUrl);
     }
 
     course.materials.push({ title, materialType, materialUrl, topic });
     await course.save();
 
-    res.status(200).json({ success: true, message: "Material added", materials: course.materials });
+    res.status(200).json({
+      success: true,
+      message: "Material added",
+      materials: course.materials,
+    });
   } catch (err) {
     console.error("Add material error:", err);
     res.status(500).json({ success: false, message: "Failed to add material" });
@@ -149,13 +176,25 @@ export const updateCourse = async (req, res) => {
   try {
     const uid = req.user.uid;
     const course = await Course.findById(req.params.id);
-    if (!course) return res.status(404).json({ success: false, message: "Course not found" });
+    if (!course)
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
 
     if (course.createdBy !== uid) {
-      return res.status(403).json({ success: false, message: "Not authorized" });
+      return res
+        .status(403)
+        .json({ success: false, message: "Not authorized" });
     }
 
-    const fieldsToUpdate = ["title", "code", "description", "category", "thumbnail", "tags"];
+    const fieldsToUpdate = [
+      "title",
+      "code",
+      "description",
+      "category",
+      "thumbnail",
+      "tags",
+    ];
     fieldsToUpdate.forEach((field) => {
       if (req.body[field] !== undefined) course[field] = req.body[field];
     });
@@ -172,10 +211,15 @@ export const deleteCourse = async (req, res) => {
   try {
     const uid = req.user.uid;
     const course = await Course.findById(req.params.id);
-    if (!course) return res.status(404).json({ success: false, message: "Course not found" });
+    if (!course)
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
 
     if (course.createdBy !== uid) {
-      return res.status(403).json({ success: false, message: "Not authorized to delete" });
+      return res
+        .status(403)
+        .json({ success: false, message: "Not authorized to delete" });
     }
 
     await Course.findByIdAndDelete(req.params.id);
@@ -196,15 +240,27 @@ export const deleteMaterialFromCourse = async (req, res) => {
     const uid = req.user.uid;
 
     const course = await Course.findById(courseId);
-    if (!course) return res.status(404).json({ success: false, message: "Course not found" });
-    if (course.createdBy !== uid) return res.status(403).json({ success: false, message: "Unauthorized" });
+    if (!course)
+      return res
+        .status(404)
+        .json({ success: false, message: "Course not found" });
+    if (course.createdBy !== uid)
+      return res.status(403).json({ success: false, message: "Unauthorized" });
 
-    course.materials = course.materials.filter((mat) => mat._id.toString() !== materialId);
+    course.materials = course.materials.filter(
+      (mat) => mat._id.toString() !== materialId
+    );
     await course.save();
 
-    res.json({ success: true, message: "Material deleted", materials: course.materials });
+    res.json({
+      success: true,
+      message: "Material deleted",
+      materials: course.materials,
+    });
   } catch (err) {
-    res.status(500).json({ success: false, message: "Failed to delete material" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to delete material" });
   }
 };
 
@@ -216,9 +272,11 @@ export const updateMaterialInCourse = async (req, res) => {
   try {
     const course = await Course.findById(courseId);
     if (!course) return res.status(404).json({ message: "Course not found" });
-    console.log("All materials in course:", course.materials.map(m => m._id.toString()));
+    console.log(
+      "All materials in course:",
+      course.materials.map((m) => m._id.toString())
+    );
     console.log("Requested material ID:", materialId);
-
 
     // Find the material
     const material = course.materials.find(
@@ -246,7 +304,7 @@ export const getAllCourses = async (req, res) => {
 
     const enrichedCourses = await Promise.all(
       courses.map(async (course) => {
-        const instructor = await User.findOne({ uid: course.createdBy }); 
+        const instructor = await User.findOne({ uid: course.createdBy });
         return {
           ...course._doc,
           instructorName: instructor?.name || "Unknown",

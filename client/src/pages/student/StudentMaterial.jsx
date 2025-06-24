@@ -72,6 +72,7 @@ const StudentMaterial = () => {
                               href={mat.materialUrl}
                               target="_blank"
                               rel="noopener noreferrer"
+                              download
                             >
                               Open
                             </a>
