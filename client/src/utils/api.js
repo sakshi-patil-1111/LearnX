@@ -248,3 +248,11 @@ export const deleteAnnouncement = async (id) => {
   );
   return res.data;
 };
+
+export const fetchAssignmentsByCourse = async (courseId) => {
+  const token = await getAuthToken();
+  const res = await axios.get(`${API_BASE}/assignments/course/${courseId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};

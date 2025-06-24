@@ -16,6 +16,7 @@ export const getAllAnnouncements = async (req, res) => {
 export const getAnnouncementsByCourse = async (req, res) => {
   try {
     const { course } = req.params;
+    console.log(corse);
     const announcements = await Announcement.find({ course }).sort({
       createdAt: -1,
     });

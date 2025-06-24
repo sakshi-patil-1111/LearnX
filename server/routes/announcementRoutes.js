@@ -12,7 +12,7 @@ import authUser from "../middlewares/authUser.js";
 // Get all announcements
 router.get("/", getAllAnnouncements);
 // Get announcements by course
-router.get("/course/:course", getAnnouncementsByCourse);
+router.get("/course/:courseId", getAnnouncementsByCourse);
 // Create announcement (protected)
 router.post("/", authUser, createAnnouncement);
 // Update announcement (protected)
