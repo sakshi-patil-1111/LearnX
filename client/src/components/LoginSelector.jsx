@@ -8,9 +8,11 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
   updateProfile,
-  GoogleAuthProvider
+  GoogleAuthProvider,
+  setPersistence,
+  browserLocalPersistence,
 } from "firebase/auth";
-import { auth} from "../firebase";
+import { auth } from "../firebase";
 import { useAppContext } from "../context/appContext";
 
 const LoginSelector = () => {
@@ -23,11 +25,14 @@ const LoginSelector = () => {
   const [loading, setLoading] = useState(false);
 
   const handleFirebaseLogin = async (firebaseUser) => {
-    const idToken = await firebaseUser.getIdToken(true); 
+    const idToken = await firebaseUser.getIdToken(true);
 
     const res = await axios.post(
       "http://localhost:8080/api/users/verify",
-      { role ,name: firebaseUser.displayName}, 
+      {
+        role,
+        name: firebaseUser.displayName,
+      },
       {
         headers: {
           Authorization: `Bearer ${idToken}`,
@@ -41,12 +46,10 @@ const LoginSelector = () => {
       setIsTeacher(res.data.user.role === "teacher");
       alert("Login successful!");
       navigate(`/${role}/dashboard`);
-      console.log(idToken);
     } else {
       alert(res.data.message || "User verification failed");
     }
-};
-
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -54,26 +57,23 @@ const LoginSelector = () => {
 
     try {
       setLoading(true);
+      await setPersistence(auth, browserLocalPersistence);
 
       let result;
       if (isSignup) {
         result = await createUserWithEmailAndPassword(auth, email, password);
         await updateProfile(result.user, { displayName: name });
-        await result.user.getIdToken(true); 
-
       } else {
         result = await signInWithEmailAndPassword(auth, email, password);
       }
 
-      await handleFirebaseLogin(result.user);
-      
+      await handleFirebaseLogin(result.user, name);
     } catch (error) {
-    const message = error.response?.data?.message ||error.message ||"Something went wrong. Please try again.";
-
-    console.error("Auth error:", message);
-    alert(message);
-
-  }finally {
+      const message =
+        error.response?.data?.message || error.message || "Something went wrong. Please try again.";
+      console.error("Auth error:", message);
+      alert(message);
+    } finally {
       setLoading(false);
     }
   };
@@ -81,25 +81,28 @@ const LoginSelector = () => {
   const handleGoogleLogin = async () => {
     try {
       setLoading(true);
+      await setPersistence(auth, browserLocalPersistence);
 
       const provider = new GoogleAuthProvider();
       provider.addScope("email");
       provider.setCustomParameters({ prompt: "select_account" });
 
       const result = await signInWithPopup(auth, provider);
-      console.log("Full Google user:", result.user);
       await handleFirebaseLogin(result.user);
-
     } catch (error) {
-    const message = error.response?.data?.message ||error.message ||"Something went wrong. Please try again.";
+      const message =
+        error.response?.data?.message || error.message || "Something went wrong. Please try again.";
 
-    console.error("Google login error:", message);
-    alert(message);
-
-  } finally {
+      if (error.code === "auth/popup-blocked") {
+        alert("Popup was blocked. Please allow popups and try again.");
+      } else {
+        console.error("Google login error:", message);
+        alert(message);
+      }
+    } finally {
       setLoading(false);
     }
-};
+  };
 
   return (
     <HomeLayout>
@@ -122,6 +125,7 @@ const LoginSelector = () => {
               type="text"
               placeholder="Enter name"
               required
+              disabled={loading}
             />
           </div>
         )}
@@ -135,6 +139,7 @@ const LoginSelector = () => {
             type="email"
             placeholder="Enter email"
             required
+            disabled={loading}
           />
         </div>
 
@@ -147,6 +152,8 @@ const LoginSelector = () => {
             type="password"
             placeholder="Enter password"
             required
+            minLength={6}
+            disabled={loading}
           />
         </div>
 
@@ -165,11 +172,7 @@ const LoginSelector = () => {
           className="bg-indigo-500 hover:bg-indigo-600 text-white w-full py-2 rounded-md mt-2"
           disabled={loading}
         >
-          {loading
-            ? "Please wait..."
-            : isSignup
-            ? "Create Account"
-            : "Login"}
+          {loading ? "Please wait..." : isSignup ? "Create Account" : "Login"}
         </button>
 
         <p className="text-sm text-center w-full text-black">

@@ -1,27 +1,67 @@
 import { createContext, useContext, useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { signOut } from "firebase/auth";
+import { signOut, onAuthStateChanged } from "firebase/auth";
 import { auth } from "../firebase";
 
+// create context
 const AppContext = createContext();
+export const useAppContext = () => useContext(AppContext);
 
+// provider component
 export const AppContextProvider = ({ children }) => {
   const navigate = useNavigate();
+  const [user, setUser] = useState(null);
+  const [isTeacher, setIsTeacher] = useState(false);
+  const [loading, setLoading] = useState(true);
 
-  const [user, setUser] = useState(null); // student or teacher object
-  const [isTeacher, setIsTeacher] = useState(false); // true if role is teacher
-
+  // listen to firebase auth state
   useEffect(() => {
-    const storedUser = localStorage.getItem("learnx_user");
-    const storedRole = localStorage.getItem("learnx_role");
+  const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
+    if (firebaseUser) {
+      try {
+        const idToken = await firebaseUser.getIdToken(true);
 
-    if (storedUser) {
-      setUser(JSON.parse(storedUser));
-      setIsTeacher(storedRole === "teacher");
+        //Fetch user from your backend 
+        const res = await fetch("http://localhost:8080/api/users/verify", {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${idToken}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name: firebaseUser.displayName }),
+          credentials: "include",
+        });
+
+        const data = await res.json();
+
+        if (data.success && data.user) {
+          setUser(data.user);
+          setIsTeacher(data.user.role === "teacher");
+
+          localStorage.setItem("learnx_user", JSON.stringify(data.user));
+          localStorage.setItem("learnx_role", data.user.role);
+        } else {
+          console.error("Backend verification failed");
+          setUser(null);
+        }
+      } catch (err) {
+        console.error("Auto-login fetch failed:", err);
+        setUser(null);
+      }
+    } else {
+      setUser(null);
+      setIsTeacher(false);
+      localStorage.removeItem("learnx_user");
+      localStorage.removeItem("learnx_role");
     }
-  }, []);
 
-  // Save to localStorage whenever user or role changes
+    setLoading(false);
+  });
+
+  return () => unsubscribe();
+}, []);
+
+  // save to localStorage
   useEffect(() => {
     if (user) {
       localStorage.setItem("learnx_user", JSON.stringify(user));
@@ -54,9 +94,8 @@ export const AppContextProvider = ({ children }) => {
     isTeacher,
     setIsTeacher,
     logout,
+    loading,
   };
 
-  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+  return <AppContext.Provider value={value}>{!loading && children}</AppContext.Provider>;
 };
-
-export const useAppContext = () => useContext(AppContext);

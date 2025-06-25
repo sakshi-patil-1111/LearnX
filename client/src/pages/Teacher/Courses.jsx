@@ -58,7 +58,6 @@ const Courses = () => {
                 >
                   <div className="flex justify-between items-start mb-4">
                     <h2 className="text-xl font-bold text-indigo-400">{course.title}</h2>
-                    
                     <span className="px-2 py-1 text-xs bg-green-500/20 text-green-400 rounded-full">
                       Active
                     </span>

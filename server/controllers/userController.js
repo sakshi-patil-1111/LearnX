@@ -10,21 +10,20 @@ export const loginOrRegister = async (req, res) => {
   }
 
   const idToken = authHeader.split(" ")[1];
-  const { role } = req.body;
+  const role = req.body.role;
+  const requestedName = req.body.name;
 
   try {
     const decodedToken = await adminAuth.verifyIdToken(idToken);
-    console.log("Decoded Token :", decodedToken);
-
     let { uid, email, name, picture } = decodedToken;
 
-    // fallback if not present
+    // fallback if fields are missing
     if (!email || !name) {
       const userRecord = await adminAuth.getUser(uid);
       const providerInfo = userRecord.providerData?.[0] || {};
 
       email = email || userRecord.email || providerInfo.email;
-      name = name || userRecord.displayName || providerInfo.displayName;
+      name = name || userRecord.displayName || providerInfo.displayName || requestedName;
       picture = picture || userRecord.photoURL || providerInfo.photoURL;
     }
 
@@ -38,7 +37,14 @@ export const loginOrRegister = async (req, res) => {
     let user = await User.findOne({ uid });
 
     if (!user) {
-      // Set defaults per role
+      if (!role) {
+        return res.status(400).json({
+          success: false,
+          message: "Cannot create user without role",
+        });
+      }
+
+      // Role-specific defaults
       const defaults = {
         student: {
           rollNo: "Not Provided",
@@ -71,7 +77,8 @@ export const loginOrRegister = async (req, res) => {
       });
     }
 
-    if (user.role !== role) {
+    //Only check role mismatch if role is provided again
+    if (role && user.role !== role) {
       return res.status(403).json({
         success: false,
         message: "Role mismatch. Access denied.",

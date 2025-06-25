@@ -4,6 +4,8 @@ import Home from "./components/Home";
 import LoginSelector from "./components/LoginSelector";
 import RoleSelect from "./components/RoleSelect";
 import PrivateRoute from "./components/PrivateRoute";
+import { useAppContext } from "./context/appContext";
+
 
 // Student Pages
 import StudentDashboard from "./pages/student/StudentDashboard";
@@ -30,7 +32,18 @@ import CourseEdit from "./pages/Teacher/CourseEdit";
 import AddAssignment from "./pages/Teacher/AddAssignment";
 import Contact from "./components/Contact";
 import About from "./components/About";
+
 const App = () => {
+   const { loading } = useAppContext();
+
+  if (loading) {
+    return (
+      <div className="h-screen w-screen flex justify-center items-center text-lg font-medium text-gray-700">
+        Loading...
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen">
       <Routes>
