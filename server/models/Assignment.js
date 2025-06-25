@@ -27,12 +27,14 @@ const assignmentSchema = new mongoose.Schema(
       required: true,
     },
     submissions: [
-      {
-        studentId: { type: String, required: true },
-        fileUrl: String,
-        submittedAt: Date,
-      },
-    ],
+    {
+      studentId: { type: String, required: true },
+      fileUrl: String,
+      submittedAt: Date,
+      grade: { type: Number, min: 0, max: 10 },
+      feedback: { type: String, default: "" },
+    }
+  ],
   },
   { timestamps: true }
 );

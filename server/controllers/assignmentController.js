@@ -36,13 +36,32 @@ export const createAssignment = async (req, res) => {
 export const getAssignmentsByCourse = async (req, res) => {
   try {
     const { courseId } = req.params;
-    const assignments = await Assignment.find({ course: courseId });
-    res.json({ success: true, assignments });
+    const studentId = req.user.uid;
+
+    const assignments = await Assignment.find({ course: courseId })
+      .lean() 
+      .sort({ dueDate: 1 });
+
+    const result = assignments.map((assignment) => {
+      const submission = assignment.submissions?.find(
+        (s) => s.studentId === studentId
+      );
+
+      return {
+        ...assignment,
+        submissions: submission ? [submission] : [],
+      };
+    });
+
+    res.json({ success: true, assignments: result });
   } catch (err) {
     console.error("Get assignments error:", err);
-    res.status(500).json({ success: false, message: "Failed to get assignments" });
+    res
+      .status(500)
+      .json({ success: false, message: "Failed to get assignments" });
   }
 };
+
 
 
 
@@ -100,7 +119,9 @@ export const getAssignmentSubmissions = async (req, res) => {
         submitted: !!submission,
         fileUrl: submission?.fileUrl || null,
         submittedAt: submission?.submittedAt || null,
-      };
+        grade: submission?.grade ?? null,
+        feedback: submission?.feedback ?? "",
+    };
     });
 
     res.json({ success: true, submissions: result });
@@ -163,5 +184,32 @@ export const submitAssignment = async (req, res) => {
   } catch (err) {
     console.error("Submission error:", err);
     res.status(500).json({ message: "Failed to submit assignment" });
+  }
+};
+
+//for grading assignmnets
+export const gradeSubmission = async (req, res) => {
+  const { assignmentId, studentId } = req.params;
+  const { grade, feedback } = req.body;
+  const teacherId = req.user.uid;
+
+  try {
+    const assignment = await Assignment.findById(assignmentId);
+    if (!assignment) return res.status(404).json({ message: "Assignment not found" });
+
+    if (assignment.createdBy !== teacherId)
+      return res.status(403).json({ message: "Not authorized" });
+
+    const submission = assignment.submissions.find(s => s.studentId === studentId);
+    if (!submission) return res.status(404).json({ message: "Submission not found" });
+
+    submission.grade = grade;
+    submission.feedback = feedback;
+
+    await assignment.save();
+    res.json({ success: true, message: "Graded successfully" });
+  } catch (err) {
+    console.error("Grading error:", err);
+    res.status(500).json({ message: "Failed to assign grade" });
   }
 };

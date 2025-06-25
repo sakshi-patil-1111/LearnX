@@ -14,9 +14,7 @@ const Assignments = () => {
   useEffect(() => {
     const fetchAssignments = async () => {
       try {
-        const user = auth.currentUser;
-        const token = await user.getIdToken();
-
+        const token = await auth.currentUser.getIdToken();
         const res = await axios.get("http://localhost:8080/api/assignments/teacher", {
           headers: { Authorization: `Bearer ${token}` },
         });
@@ -51,6 +49,27 @@ const Assignments = () => {
       } catch (err) {
         console.error("Failed to fetch submissions", err);
       }
+    }
+  };
+
+  const handleGradeSubmit = async (assignmentId, studentId, grade, feedback) => {
+    try {
+      const token = await auth.currentUser.getIdToken();
+      await axios.patch(
+        `http://localhost:8080/api/assignments/${assignmentId}/grade/${studentId}`,
+        { grade, feedback },
+        { headers: { Authorization: `Bearer ${token}` } }
+      );
+
+      setSubmissions((prev) => ({
+        ...prev,
+        [assignmentId]: prev[assignmentId].map((s) =>
+          s.uid === studentId ? { ...s, grade, feedback } : s
+        ),
+      }));
+    } catch (err) {
+      console.error("Error submitting grade", err);
+      alert("Failed to submit grade");
     }
   };
 
@@ -114,42 +133,99 @@ const Assignments = () => {
                   </div>
                 </div>
 
-                {/* DETAILS TAB */}
                 {activeTab[a._id] === "details" && (
                   <div className="text-base text-gray-300 space-y-2 ml-1">
-                    <p><span className="font-semibold text-white">Description:</span> {a.description || "N/A"}</p>
-                    <p><span className="font-semibold text-white">Due Date:</span> {new Date(a.dueDate).toLocaleDateString()}</p>
-                    <p><span className="font-semibold text-white">Course:</span> {a.courseTitle || "Unknown"}</p>
-                    <p><span className="font-semibold text-white">Uploaded By:</span> {a.createdByName || "You"}</p>
+                    <p>
+                      <span className="font-semibold text-white">Description:</span>{" "}
+                      {a.description || "N/A"}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-white">Due Date:</span>{" "}
+                      {new Date(a.dueDate).toLocaleDateString()}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-white">Course:</span>{" "}
+                      {a.courseTitle || "Unknown"}
+                    </p>
+                    <p>
+                      <span className="font-semibold text-white">Uploaded By:</span>{" "}
+                      {a.createdByName || "You"}
+                    </p>
                   </div>
                 )}
 
-                {/* SUBMISSIONS TAB */}
                 {activeTab[a._id] === "submissions" && (
                   <div className="mt-3 space-y-3">
                     {submissions[a._id]?.length > 0 ? (
                       submissions[a._id].map((sub) => (
                         <div
                           key={sub.uid}
-                          className="flex justify-between items-center bg-gray-800/50 border border-white/10 p-3 rounded-lg"
+                          className="flex flex-col sm:flex-row sm:justify-between items-start sm:items-center bg-gray-800/50 border border-white/10 p-4 rounded-lg"
                         >
-                          <div>
-                            <p className="text-white font-medium">{sub.name} ({sub.email})</p>
+                          <div className="mb-2 sm:mb-0">
+                            <p className="text-white font-medium">
+                              {sub.name} ({sub.email})
+                            </p>
                             <p className="text-sm text-gray-300">
                               {sub.submitted
                                 ? `Submitted on ${new Date(sub.submittedAt).toLocaleString()}`
                                 : "Not submitted yet"}
                             </p>
+
+                            {(sub.grade !== null && sub.grade !== undefined && sub.grade !== "") ? (
+                              <p className="text-sm text-green-400 mt-1">
+                                Grade: {sub.grade}/10
+                                {sub.feedback && <span> — {sub.feedback}</span>}
+                              </p>
+                            ) : (
+                              <p className="text-sm text-yellow-400 mt-1 italic">Not graded yet</p>
+                            )}
                           </div>
-                          {sub.submitted && (
-                            <a
-                              href={sub.fileUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-indigo-400 hover:underline font-medium"
-                            >
-                              📥 View Submission
-                            </a>
+
+                          {sub.submitted && (sub.grade === null || sub.grade === undefined || sub.grade === "") && (
+                            <div className="flex flex-col sm:items-end sm:space-y-2">
+                              <a
+                                href={sub.fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-indigo-400 hover:underline font-medium"
+                              >
+                                📥 View Submission
+                              </a>
+
+                              <form
+                                onSubmit={(e) => {
+                                  e.preventDefault();
+                                  const form = e.target;
+                                  const grade = form.grade.value;
+                                  const feedback = form.feedback.value;
+                                  handleGradeSubmit(a._id, sub.uid, grade, feedback);
+                                }}
+                                className="flex flex-col sm:flex-row gap-2 mt-2"
+                              >
+                                <input
+                                  name="grade"
+                                  type="number"
+                                  placeholder="Grade /10"
+                                  min="0"
+                                  max="10"
+                                  required
+                                  className="px-2 py-1 rounded bg-gray-700 text-white w-20"
+                                />
+                                <input
+                                  name="feedback"
+                                  type="text"
+                                  placeholder="Feedback"
+                                  className="px-2 py-1 rounded bg-gray-700 text-white"
+                                />
+                                <button
+                                  type="submit"
+                                  className="bg-indigo-500 px-3 py-1 text-white rounded hover:bg-indigo-600"
+                                >
+                                  Submit
+                                </button>
+                              </form>
+                            </div>
                           )}
                         </div>
                       ))

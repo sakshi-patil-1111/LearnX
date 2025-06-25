@@ -93,24 +93,44 @@ const StudentAssignments = () => {
                       </a>
 
                       {submission ? (
-                        <div className="bg-green-500/10 border border-green-500 rounded-lg p-3 text-sm">
-                          <p className="text-green-400 font-semibold">
+                       <div className="bg-gray-800 border border-gray-600 rounded-lg p-4 text-sm space-y-2">
+                          <div className="text-green-400 font-semibold">
                             ✅ Submitted on{" "}
-                            {new Date(submission.submittedAt).toLocaleString()}
-                          </p>
-                          <p className="text-gray-300 break-all mt-1">
-                            📄{" "}
+                            <span className="text-white">
+                              {new Date(submission.submittedAt).toLocaleString()}
+                            </span>
+                          </div>
+
+                          <div className="text-gray-300">
+                            📄 Submission File:{" "}
                             <a
                               href={submission.fileUrl}
                               target="_blank"
                               rel="noreferrer"
-                              className="text-blue-400 underline"
+                              className="text-indigo-400 hover:underline font-medium break-all"
                             >
                               {submission.fileUrl.split("/").pop().split("?")[0]}
                             </a>
-                          </p>
+                          </div>
+
+                          {submission.grade !== null && submission.grade !== undefined ? (
+                            <div className="bg-indigo-600/20 border border-indigo-500 text-indigo-200 px-3 py-2 rounded-md">
+                              <p>
+                                <span className="font-semibold">Grade:</span> {submission.grade}/10
+                              </p>
+                              {submission.feedback && (
+                                <p>
+                                  <span className="font-semibold">Feedback:</span>{" "}
+                                  <span className="text-gray-200">{submission.feedback}</span>
+                                </p>
+                              )}
+                            </div>
+                          ) : (
+                            <p className="text-yellow-400 italic font-medium">Not graded yet</p>
+                          )}
                         </div>
-                      ) : isLate ? (
+
+                        ) : isLate ? (
                         <div className="text-red-400 font-semibold text-sm mt-2">
                           ❌ Deadline passed
                         </div>

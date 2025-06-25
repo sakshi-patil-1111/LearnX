@@ -191,6 +191,26 @@ export const submitAssignment = async (assignmentId, file) => {
   return res.data;
 };
 
+//for grading
+export const gradeAssignmentSubmission = async (
+    assignmentId,
+    studentId,
+    gradeData
+  ) => {
+    const token = await getAuthToken();
+    const res = await axios.post(
+      `${API_BASE}/assignments/${assignmentId}/grade/${studentId}`,
+      gradeData,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        },
+      }
+    );
+    return res.data;
+  };
+
+
 // Fetch assignments created by the teacher
 export const fetchTeacherAssignments = async () => {
   const token = await getAuthToken();

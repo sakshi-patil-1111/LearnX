@@ -239,147 +239,160 @@ const StudentCourseDetail = () => {
               )}
             </div>
           )}
-          {activeTab === "assignments" && (
-            <div className="space-y-12 bg-gray-800 p-6 rounded-md">
-              <h2 className="text-xl font-bold text-indigo-400 mb-4">
-                Assignments
-              </h2>
-              {assignments.length === 0 ? (
-                <p className="text-gray-400">No assignments for this course.</p>
-              ) : (
-                assignments.map((assignment) => {
-                  const submission = assignment.submissions?.find(
-                    (s) => s.studentId === currentUserId
-                  );
-                  const isLate = new Date() > new Date(assignment.dueDate);
-                  return (
-                    <div
-                      key={assignment._id}
-                      className="bg-gray-800/80 border border-gray-700 rounded-2xl shadow-2xl p-8 backdrop-blur-lg hover:shadow-indigo-500/20 transition duration-300"
-                    >
-                      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                        {/* Left: Assignment Info */}
-                        <div className="col-span-2 space-y-3">
-                          <h3 className="text-2xl font-bold text-indigo-300">
-                            {assignment.title}
-                          </h3>
-                          <p className="text-gray-200">
-                            {assignment.description}
-                          </p>
-                          <div className="text-sm text-gray-400">
-                            <strong>Due:</strong>{" "}
-                            {new Date(assignment.dueDate).toLocaleString()}
+            {activeTab === "assignments" && (
+                <div className="space-y-12 bg-gray-800 p-6 rounded-md">
+                  <h2 className="text-xl font-bold text-indigo-400 mb-4">Assignments</h2>
+                  {assignments.length === 0 ? (
+                    <p className="text-gray-400">No assignments for this course.</p>
+                  ) : (
+                    assignments.map((assignment) => {
+                     const submission = assignment.submissions?.[0];
+                      const isLate = new Date() > new Date(assignment.dueDate);
+                      return (
+                        <div
+                          key={assignment._id}
+                          className="bg-[#121a29] border border-[#2b3950] rounded-2xl shadow-xl p-8 transition duration-300"
+                        >
+                          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            {/* Assignment Info */}
+                            <div className="col-span-2 space-y-3">
+                              <h3 className="text-2xl font-bold text-[#b8baff]">
+                                {assignment.title}
+                              </h3>
+                              <p className="text-gray-300">{assignment.description}</p>
+                              <div className="text-sm text-gray-400">
+                                <strong>Course:</strong> {course.title}
+                              </div>
+                              <div className="text-sm text-gray-400">
+                                <strong>Due:</strong>{" "}
+                                {new Date(assignment.dueDate).toLocaleString()}
+                              </div>
+                            </div>
+
+                            {/* Actions */}
+                            <div className="space-y-4 flex flex-col justify-between">
+                              <a
+                                href={assignment.fileUrl}
+                                target="_blank"
+                                rel="noreferrer"
+                                className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg font-semibold text-center transition"
+                              >
+                                📥 Download File
+                              </a>
+
+                              {submission ? (
+                                <div className="bg-[#192435] border border-green-500 rounded-lg p-4 text-sm space-y-2">
+                                  <p className="text-green-400 font-semibold">
+                                    ✅ Submitted on{" "}
+                                    <span className="text-white">
+                                      {new Date(submission.submittedAt).toLocaleString()}
+                                    </span>
+                                  </p>
+                                  <p className="text-gray-300">
+                                    📄 Submission File:{" "}
+                                    <a
+                                      href={submission.fileUrl}
+                                      target="_blank"
+                                      rel="noreferrer"
+                                      className="text-indigo-400 underline font-medium break-all"
+                                    >
+                                      {submission.fileUrl.split("/").pop().split("?")[0]}
+                                    </a>
+                                  </p>
+                                  {submission.grade !== null &&
+                                  submission.grade !== undefined ? (
+                                    <div className="bg-indigo-600/20 border border-indigo-500 text-indigo-200 px-3 py-2 rounded-md space-y-1">
+                                      <p>
+                                        <span className="font-semibold">Grade:</span>{" "}
+                                        {submission.grade}/10
+                                      </p>
+                                      {submission.feedback && (
+                                        <p>
+                                          <span className="font-semibold">Feedback:</span>{" "}
+                                          <span className="text-gray-200">
+                                            {submission.feedback}
+                                          </span>
+                                        </p>
+                                      )}
+                                    </div>
+                                  ) : (
+                                    <p className="text-yellow-400 italic font-semibold">
+                                      Not graded yet
+                                    </p>
+                                  )}
+                                </div>
+                              ) : isLate ? (
+                                <div className="text-red-400 font-semibold text-sm mt-2">
+                                  ❌ Deadline passed
+                                </div>
+                              ) : (
+                                <form
+                                  onSubmit={async (e) => {
+                                    e.preventDefault();
+                                    const file = e.target.file.files[0];
+                                    if (!file) return alert("Please select a file.");
+                                    try {
+                                      setSubmittingId(assignment._id);
+                                      await submitAssignment(assignment._id, file);
+                                      setSelectedFiles((prev) => ({
+                                        ...prev,
+                                        [assignment._id]: null,
+                                      }));
+                                      const assignRes = await fetchAssignmentsByCourse(
+                                        courseId
+                                      );
+                                      setAssignments(assignRes.assignments || []);
+                                    } catch (err) {
+                                      alert(
+                                        err?.response?.data?.message || "Submission failed"
+                                      );
+                                    } finally {
+                                      setSubmittingId(null);
+                                    }
+                                  }}
+                                  className="space-y-3"
+                                >
+                                  <label className="bg-white/10 text-white px-4 py-2 rounded-lg font-medium text-sm cursor-pointer border border-gray-600 hover:bg-white/20 transition block text-center">
+                                    📁 Choose File
+                                    <input
+                                      type="file"
+                                      name="file"
+                                      accept=".pdf,.txt"
+                                      className="hidden"
+                                      required
+                                      onChange={(e) =>
+                                        setSelectedFiles((prev) => ({
+                                          ...prev,
+                                          [assignment._id]: e.target.files[0]?.name || "",
+                                        }))
+                                      }
+                                    />
+                                  </label>
+                                  {selectedFiles[assignment._id] && (
+                                    <div className="text-sm text-gray-300 font-mono break-all">
+                                      📄 {selectedFiles[assignment._id]}
+                                    </div>
+                                  )}
+                                  <button
+                                    type="submit"
+                                    disabled={submittingId === assignment._id}
+                                    className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-semibold w-full transition"
+                                  >
+                                    {submittingId === assignment._id
+                                      ? "Submitting..."
+                                      : "Submit Assignment"}
+                                  </button>
+                                </form>
+                              )}
+                            </div>
                           </div>
                         </div>
-                        {/* Right: Actions */}
-                        <div className="space-y-4 flex flex-col justify-between">
-                          <a
-                            href={assignment.fileUrl}
-                            target="_blank"
-                            rel="noreferrer"
-                            className="bg-green-600 hover:bg-green-700 text-white px-5 py-2 rounded-lg font-medium text-center transition"
-                          >
-                            📥 Download File
-                          </a>
-                          {submission ? (
-                            <div className="bg-green-500/10 border border-green-500 rounded-lg p-3 text-sm">
-                              <p className="text-green-400 font-semibold">
-                                ✅ Submitted on{" "}
-                                {new Date(
-                                  submission.submittedAt
-                                ).toLocaleString()}
-                              </p>
-                              <p className="text-gray-300 break-all mt-1">
-                                📄{" "}
-                                <a
-                                  href={submission.fileUrl}
-                                  target="_blank"
-                                  rel="noreferrer"
-                                  className="text-blue-400 underline"
-                                >
-                                  {
-                                    submission.fileUrl
-                                      .split("/")
-                                      .pop()
-                                      .split("?")[0]
-                                  }
-                                </a>
-                              </p>
-                            </div>
-                          ) : isLate ? (
-                            <div className="text-red-400 font-semibold text-sm mt-2">
-                              ❌ Deadline passed
-                            </div>
-                          ) : (
-                            <form
-                              onSubmit={async (e) => {
-                                e.preventDefault();
-                                const file = e.target.file.files[0];
-                                if (!file)
-                                  return alert("Please select a file.");
-                                try {
-                                  setSubmittingId(assignment._id);
-                                  await submitAssignment(assignment._id, file);
-                                  setSelectedFiles((prev) => ({
-                                    ...prev,
-                                    [assignment._id]: null,
-                                  }));
-                                  // Refresh assignments
-                                  const assignRes =
-                                    await fetchAssignmentsByCourse(courseId);
-                                  setAssignments(assignRes.assignments || []);
-                                } catch (err) {
-                                  alert(
-                                    err?.response?.data?.message ||
-                                      "Submission failed"
-                                  );
-                                } finally {
-                                  setSubmittingId(null);
-                                }
-                              }}
-                              className="space-y-3"
-                            >
-                              <label className="bg-white/10 text-white px-4 py-2 rounded-lg font-medium text-sm cursor-pointer border border-gray-600 hover:bg-white/20 transition block text-center">
-                                📁 Choose File
-                                <input
-                                  type="file"
-                                  name="file"
-                                  accept=".pdf,.txt"
-                                  className="hidden"
-                                  required
-                                  onChange={(e) =>
-                                    setSelectedFiles((prev) => ({
-                                      ...prev,
-                                      [assignment._id]:
-                                        e.target.files[0]?.name || "",
-                                    }))
-                                  }
-                                />
-                              </label>
-                              {selectedFiles[assignment._id] && (
-                                <div className="text-sm text-gray-300 font-mono break-all">
-                                  📄 {selectedFiles[assignment._id]}
-                                </div>
-                              )}
-                              <button
-                                type="submit"
-                                disabled={submittingId === assignment._id}
-                                className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2 rounded-lg font-medium w-full transition"
-                              >
-                                {submittingId === assignment._id
-                                  ? "Submitting..."
-                                  : "Submit Assignment"}
-                              </button>
-                            </form>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-                  );
-                })
+                      );
+                    })
+                  )}
+                </div>
               )}
-            </div>
-          )}
+
           {activeTab === "chat" && (
             <div className="space-y-4 bg-gray-800 p-6 rounded-md">
               <Chat
