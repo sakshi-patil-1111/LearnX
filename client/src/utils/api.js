@@ -52,26 +52,19 @@ export const getCourseById = async (courseId) => {
   if (!res.ok) throw new Error("Failed to fetch course");
   return await res.json();
 };
-
-export const addMaterialToCourse = async (
-  courseId,
-  materialData,
-  isFormData = false
-) => {
+export const addMaterialToCourse = async (courseId, materialData) => {
   const token = await getAuthToken();
-  const headers = {
-    Authorization: `Bearer ${token}`,
-  };
-  if (!isFormData) headers["Content-Type"] = "multipart/form-data";
-
-  const res = await fetch(`${API_BASE}/courses/${courseId}/material`, {
-    method: "POST",
-    headers,
-    body: isFormData ? materialData : JSON.stringify(materialData),
-  });
-
-  if (!res.ok) throw new Error("Failed to add material");
-  return await res.json();
+  const res = await axios.post(
+    `${API_BASE}/courses/${courseId}/material`,
+    materialData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+        "Content-Type": "multipart/form-data",
+      },
+    }
+  );
+  return res.data;
 };
 
 export const updateCourse = async (courseId, courseData) => {

@@ -93,15 +93,12 @@ const Materials = () => {
   };
 
   const handleDeleteMaterial = async (courseId, materialId) => {
-    if (!window.confirm("Are you sure you want to delete this material?"))
-      return;
+    if (!window.confirm("Are you sure you want to delete this material?")) return;
     try {
       const res = await deleteMaterialFromCourse(courseId, materialId);
       setCourses((prev) =>
         prev.map((course) =>
-          course._id === courseId
-            ? { ...course, materials: res.materials }
-            : course
+          course._id === courseId ? { ...course, materials: res.materials } : course
         )
       );
     } catch (err) {
@@ -135,9 +132,7 @@ const Materials = () => {
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-blue-300 opacity-10 rounded-full blur-2xl"></div>
         <div className="max-w-7xl mx-auto relative z-10">
           <div className="flex justify-between items-center mb-8">
-            <h1 className="text-3xl font-bold text-indigo-400">
-              All Course Materials
-            </h1>
+            <h1 className="text-3xl font-bold text-indigo-400">All Course Materials</h1>
             <button
               onClick={() => setShowUploadForm(!showUploadForm)}
               className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition"
@@ -184,7 +179,7 @@ const Materials = () => {
                 ) : (
                   <input
                     type="file"
-                    accept=".pdf,video/*"
+                    accept=".pdf"
                     onChange={handleFileChange}
                     className="p-2 bg-gray-700 rounded text-white"
                   />
@@ -204,7 +199,6 @@ const Materials = () => {
                   className="p-2 bg-gray-700 rounded text-white"
                 >
                   <option value="pdf">PDF</option>
-                  <option value="video">Video</option>
                   <option value="note">Note</option>
                   <option value="link">Link</option>
                 </select>
@@ -246,9 +240,7 @@ const Materials = () => {
                         <React.Fragment key={i}>
                           <tr className="border-t border-gray-700">
                             <td className="p-2 text-white">{mat.title}</td>
-                            <td className="p-2 text-gray-400">
-                              {mat.materialType}
-                            </td>
+                            <td className="p-2 text-gray-400">{mat.materialType}</td>
                             <td className="p-2 text-gray-400">{mat.topic}</td>
                             <td className="p-2 text-blue-400">
                               <a
@@ -261,9 +253,7 @@ const Materials = () => {
                               </a>
                             </td>
                             <td className="p-2 text-gray-500">
-                              {new Date(
-                                mat.uploadedAt || Date.now()
-                              ).toLocaleDateString()}
+                              {new Date(mat.uploadedAt || Date.now()).toLocaleDateString()}
                             </td>
                             <td className="p-2">
                               <button
@@ -331,16 +321,13 @@ const Materials = () => {
                                       className="p-2 bg-gray-700 text-white rounded"
                                     >
                                       <option value="pdf">PDF</option>
-                                      <option value="video">Video</option>
                                       <option value="note">Note</option>
                                       <option value="link">Link</option>
                                     </select>
                                   </div>
                                   <div className="flex space-x-4 mt-2">
                                     <button
-                                      onClick={() =>
-                                        handleUpdateMaterial(editingMaterial)
-                                      }
+                                      onClick={() => handleUpdateMaterial(editingMaterial)}
                                       className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white rounded"
                                     >
                                       Save

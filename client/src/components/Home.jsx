@@ -1,7 +1,10 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import HomeLayout from './HomeLayout';
 
 const Home = () => {
+  const navigate = useNavigate();
+
   return (
     <HomeLayout>
       <h2 className="text-4xl sm:text-5xl font-bold mb-6 leading-tight text-center">
@@ -11,7 +14,10 @@ const Home = () => {
         Dive into a world of knowledge with top educators to enhance your skills.
       </p>
       <div className="flex flex-col sm:flex-row gap-4 mb-8">
-        <button className="bg-indigo-400 text-white font-medium px-6 py-2 rounded-md shadow hover:bg-indigo-500 transition">
+        <button
+          onClick={() => navigate("/select-role")}
+          className="bg-indigo-400 text-white font-medium px-6 py-2 rounded-md shadow hover:bg-indigo-500 transition"
+        >
           Join Now
         </button>
         <button className="border border-white text-white px-6 py-2 rounded-md hover:bg-white hover:text-gray-900 transition">

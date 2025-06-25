@@ -151,13 +151,20 @@ export const addMaterialToCourse = async (req, res) => {
 
     // If a file is uploaded, upload to Cloudinary
     if (req.file) {
-      const result = await uploadToCloudinary(req.file.path, "materials");
-      materialUrl = result.secure_url;
+     const result = await uploadToCloudinary(req.file.path, "materials", "raw");
 
-      console.log(materialUrl);
+      materialUrl = result.secure_url;
     }
 
-    course.materials.push({ title, materialType, materialUrl, topic });
+    course.materials.push({
+      title,
+      materialType,
+      topic,
+      materialUrl,
+      uploadedBy: teacher.uid,
+      uploadedAt: new Date(),
+    });
+
     await course.save();
 
     res.status(200).json({
@@ -170,6 +177,7 @@ export const addMaterialToCourse = async (req, res) => {
     res.status(500).json({ success: false, message: "Failed to add material" });
   }
 };
+
 
 //edit course
 export const updateCourse = async (req, res) => {

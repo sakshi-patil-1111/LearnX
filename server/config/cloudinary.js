@@ -1,6 +1,7 @@
 import { v2 as cloudinary } from "cloudinary";
 import fs from "fs";
-import "dotenv/config";
+import dotenv from "dotenv";
+dotenv.config();
 
 export const connectCloudinary = () => {
   cloudinary.config({
@@ -9,12 +10,16 @@ export const connectCloudinary = () => {
     api_secret: process.env.CLOUDINARY_SECRET_KEY,
   });
 };
-
-export const uploadToCloudinary = async (filePath, folder) => {
-  const res = await cloudinary.uploader.upload(filePath, {
-    folder,
-    resource_type: "raw", // important for PDFs, TXT, etc.
-  });
-  fs.unlinkSync(filePath); // remove local temp file
-  return res;
+export const uploadToCloudinary = async (localFilePath, folder) => {
+  try {
+    const result = await cloudinary.uploader.upload(localFilePath, {
+      resource_type: "raw", // ← THIS IS THE KEY
+      folder, // e.g., "materials"
+    });
+    fs.unlinkSync(localFilePath); // delete local file
+    return result;
+  } catch (error) {
+    console.error("Cloudinary upload error:", error);
+    throw error;
+  }
 };
