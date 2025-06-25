@@ -18,8 +18,8 @@ const attendanceSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["present", "absent", "late", "excused"],
-      default: "present",
+      enum: ["present", "absent", "late", "excused", "not marked"],
+      default: "not marked",
     },
     markedBy: {
       type: String, // Teacher's uid

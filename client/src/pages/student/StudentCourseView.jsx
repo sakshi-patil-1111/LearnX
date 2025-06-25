@@ -9,6 +9,7 @@ import {
 } from "../../utils/api";
 import Navbar from "../../components/Navbar";
 import StudentsTab from "../Teacher/CourseTabs/StudentsTab";
+import StudentAttendanceView from "./StudentAttendanceView";
 import { getAuth } from "firebase/auth";
 
 const getPriorityColor = (priority) => {
@@ -90,6 +91,7 @@ const StudentCourseDetail = () => {
             "overview",
             "students",
             "materials",
+            "attendance",
             "announcements",
             "assignments",
           ].map((tab) => (
@@ -174,6 +176,9 @@ const StudentCourseDetail = () => {
                 )}
               </div>
             </div>
+          )}
+          {activeTab === "attendance" && (
+            <StudentAttendanceView courseId={courseId} />
           )}
           {activeTab === "announcements" && (
             <div className="space-y-4 bg-gray-800 p-6 rounded-md">

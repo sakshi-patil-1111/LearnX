@@ -277,6 +277,27 @@ export const getAttendanceReport = async (req, res) => {
       .populate("courseId", "title")
       .sort({ date: -1 });
 
+    // Get unique student IDs from attendance records
+    const studentIds = [
+      ...new Set(attendance.map((record) => record.studentId)),
+    ];
+
+    // Fetch student information
+    const students = await User.find({ uid: { $in: studentIds } }).select(
+      "uid name rollNo"
+    );
+    const studentMap = {};
+    students.forEach((student) => {
+      studentMap[student.uid] = student;
+    });
+
+    // Add student information to attendance records
+    const attendanceWithStudentInfo = attendance.map((record) => ({
+      ...record.toObject(),
+      studentName: studentMap[record.studentId]?.name || "Unknown Student",
+      studentRollNo: studentMap[record.studentId]?.rollNo || "",
+    }));
+
     // Calculate statistics
     const totalDays = attendance.length;
     const presentDays = attendance.filter(
@@ -291,9 +312,18 @@ export const getAttendanceReport = async (req, res) => {
     const excusedDays = attendance.filter(
       (record) => record.status === "excused"
     ).length;
+    const notMarkedDays = attendance.filter(
+      (record) => record.status === "not marked"
+    ).length;
 
+    // Calculate attendance percentage excluding "not marked" records
+    const markedRecords = attendance.filter(
+      (record) => record.status !== "not marked"
+    );
     const attendancePercentage =
-      totalDays > 0 ? ((presentDays + lateDays) / totalDays) * 100 : 0;
+      markedRecords.length > 0
+        ? ((presentDays + lateDays) / markedRecords.length) * 100
+        : 0;
 
     res.status(200).json({
       course: { id: course._id, title: course.title },
@@ -304,9 +334,10 @@ export const getAttendanceReport = async (req, res) => {
         absentDays,
         lateDays,
         excusedDays,
+        notMarkedDays,
         attendancePercentage: Math.round(attendancePercentage * 100) / 100,
       },
-      attendance,
+      attendance: attendanceWithStudentInfo,
     });
   } catch (error) {
     console.error("Error getting attendance report:", error);
@@ -343,6 +374,102 @@ export const getCourseStudents = async (req, res) => {
     });
   } catch (error) {
     console.error("Error getting course students:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+// Get attendance statistics for all courses of a student
+export const getStudentAttendanceStats = async (req, res) => {
+  try {
+    const studentId = req.user.uid;
+
+    // Get all courses where student is enrolled
+    const courses = await Course.find({
+      enrolledStudents: studentId,
+    }).select("_id title");
+
+    const courseStats = [];
+    let totalPresent = 0;
+    let totalAbsent = 0;
+    let totalLate = 0;
+    let totalExcused = 0;
+    let totalNotMarked = 0;
+    let totalDays = 0;
+
+    for (const course of courses) {
+      const attendance = await Attendance.find({
+        courseId: course._id,
+        studentId: studentId,
+      });
+
+      const presentDays = attendance.filter(
+        (record) => record.status === "present"
+      ).length;
+      const absentDays = attendance.filter(
+        (record) => record.status === "absent"
+      ).length;
+      const lateDays = attendance.filter(
+        (record) => record.status === "late"
+      ).length;
+      const excusedDays = attendance.filter(
+        (record) => record.status === "excused"
+      ).length;
+      const notMarkedDays = attendance.filter(
+        (record) => record.status === "not marked"
+      ).length;
+      const courseTotalDays = attendance.length;
+
+      // Calculate percentage excluding "not marked" records
+      const markedRecords = attendance.filter(
+        (record) => record.status !== "not marked"
+      );
+      const attendancePercentage =
+        markedRecords.length > 0
+          ? ((presentDays + lateDays) / markedRecords.length) * 100
+          : 0;
+
+      courseStats.push({
+        courseId: course._id,
+        courseTitle: course.title,
+        presentDays,
+        absentDays,
+        lateDays,
+        excusedDays,
+        notMarkedDays,
+        totalDays: courseTotalDays,
+        attendancePercentage: Math.round(attendancePercentage * 100) / 100,
+      });
+
+      // Add to totals
+      totalPresent += presentDays;
+      totalAbsent += absentDays;
+      totalLate += lateDays;
+      totalExcused += excusedDays;
+      totalNotMarked += notMarkedDays;
+      totalDays += courseTotalDays;
+    }
+
+    // Calculate overall statistics
+    const markedRecords = totalDays - totalNotMarked;
+    const overallPercentage =
+      markedRecords > 0
+        ? ((totalPresent + totalLate) / markedRecords) * 100
+        : 0;
+
+    res.status(200).json({
+      overallStats: {
+        totalPresent,
+        totalAbsent,
+        totalLate,
+        totalExcused,
+        totalNotMarked,
+        totalDays,
+        attendancePercentage: Math.round(overallPercentage * 100) / 100,
+      },
+      courseStats,
+    });
+  } catch (error) {
+    console.error("Error getting student attendance stats:", error);
     res.status(500).json({ message: "Internal server error" });
   }
 };

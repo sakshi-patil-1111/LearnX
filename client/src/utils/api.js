@@ -1,4 +1,4 @@
-const API_BASE = "http://localhost:8080/api";
+export const API_BASE = "http://localhost:8080/api";
 import { auth } from "../firebase";
 import axios from "axios";
 
@@ -258,6 +258,79 @@ export const deleteAnnouncement = async (id) => {
 export const fetchAssignmentsByCourse = async (courseId) => {
   const token = await getAuthToken();
   const res = await axios.get(`${API_BASE}/assignments/course/${courseId}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
+
+// Attendance API functions
+export const markAttendance = async (attendanceData) => {
+  const token = await getAuthToken();
+  const res = await axios.post(`${API_BASE}/attendance/mark`, attendanceData, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};
+
+export const markBulkAttendance = async (bulkAttendanceData) => {
+  const token = await getAuthToken();
+  const res = await axios.post(
+    `${API_BASE}/attendance/mark-bulk`,
+    bulkAttendanceData,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+  return res.data;
+};
+
+export const getAttendanceByDate = async (courseId, date) => {
+  const token = await getAuthToken();
+  const res = await axios.get(
+    `${API_BASE}/attendance/course/${courseId}/date/${date}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+  return res.data;
+};
+
+export const getAttendanceReport = async (
+  courseId,
+  startDate,
+  endDate,
+  studentId
+) => {
+  const token = await getAuthToken();
+  const params = new URLSearchParams();
+  if (startDate) params.append("startDate", startDate);
+  if (endDate) params.append("endDate", endDate);
+  if (studentId) params.append("studentId", studentId);
+
+  const res = await axios.get(
+    `${API_BASE}/attendance/course/${courseId}/report?${params}`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+  return res.data;
+};
+
+export const getCourseStudents = async (courseId) => {
+  const token = await getAuthToken();
+  const res = await axios.get(
+    `${API_BASE}/attendance/course/${courseId}/students`,
+    {
+      headers: { Authorization: `Bearer ${token}` },
+    }
+  );
+  return res.data;
+};
+
+// Get attendance statistics for all courses of a student
+export const getStudentAttendanceStats = async () => {
+  const token = await getAuthToken();
+  const res = await axios.get(`${API_BASE}/attendance/student/stats`, {
     headers: { Authorization: `Bearer ${token}` },
   });
   return res.data;

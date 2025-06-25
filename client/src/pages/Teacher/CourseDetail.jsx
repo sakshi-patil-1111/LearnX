@@ -13,6 +13,7 @@ import {
 import { auth } from "../../firebase";
 import MaterialsTab from "./CourseTabs/MaterialsTab";
 import StudentsTab from "./CourseTabs/StudentsTab";
+import AttendanceTab from "./CourseTabs/AttendanceTab";
 import axios from "axios";
 
 const CourseDetail = () => {
@@ -100,6 +101,7 @@ const CourseDetail = () => {
     "overview",
     "students",
     "materials",
+    "attendance",
     "announcements",
     "assignments",
   ];
@@ -301,6 +303,10 @@ const CourseDetail = () => {
                 materials={course.materials}
                 onUpdated={setCourse}
               />
+            )}
+
+            {activeTab === "attendance" && (
+              <AttendanceTab courseId={courseId} />
             )}
 
             {activeTab === "announcements" && (
