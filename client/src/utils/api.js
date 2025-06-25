@@ -335,3 +335,19 @@ export const getStudentAttendanceStats = async () => {
   });
   return res.data;
 };
+
+export const fetchCurrentStudentProfile = async () => {
+  const token = await getAuthToken();
+  const res = await axios.get(`${API_BASE}/users/student/profile`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data.student;
+};
+
+export const fetchCurrentTeacherProfile = async () => {
+  const token = await getAuthToken();
+  const res = await axios.get(`${API_BASE}/users/teacher/profile`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data.teacher;
+};

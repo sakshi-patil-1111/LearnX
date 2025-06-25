@@ -9,12 +9,14 @@ import {
   createAnnouncement,
   updateAnnouncement,
   deleteAnnouncement,
+  fetchCurrentTeacherProfile,
 } from "../../utils/api";
 import { auth } from "../../firebase";
 import MaterialsTab from "./CourseTabs/MaterialsTab";
 import StudentsTab from "./CourseTabs/StudentsTab";
 import AttendanceTab from "./CourseTabs/AttendanceTab";
 import axios from "axios";
+import Chat from "../../components/Chat";
 
 const CourseDetail = () => {
   const { courseId } = useParams();
@@ -42,6 +44,8 @@ const CourseDetail = () => {
   const [assignLoading, setAssignLoading] = useState(false);
   const [activeAssignTab, setActiveAssignTab] = useState({});
   const [submissions, setSubmissions] = useState({});
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [currentUserName, setCurrentUserName] = useState("Teacher");
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -84,7 +88,19 @@ const CourseDetail = () => {
       }
     };
 
+    const fetchProfile = async () => {
+      try {
+        const profile = await fetchCurrentTeacherProfile();
+        setCurrentUserId(profile._id);
+        setCurrentUserName(profile.name || "Teacher");
+      } catch (err) {
+        setCurrentUserId(null);
+        setCurrentUserName("Teacher");
+      }
+    };
+
     fetchCourse();
+    fetchProfile();
   }, [courseId, navigate]);
 
   if (loading) {
@@ -104,6 +120,7 @@ const CourseDetail = () => {
     "attendance",
     "announcements",
     "assignments",
+    "chat",
   ];
 
   const handleAnnInputChange = (e) => {
@@ -615,6 +632,17 @@ const CourseDetail = () => {
                     </div>
                   ))
                 )}
+              </div>
+            )}
+
+            {activeTab === "chat" && (
+              <div className="space-y-4 bg-gray-800 p-6 rounded-md">
+                <Chat
+                  courseId={courseId}
+                  userId={currentUserId}
+                  userName={currentUserName}
+                  userRole="teacher"
+                />
               </div>
             )}
           </div>

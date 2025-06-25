@@ -6,11 +6,13 @@ import {
   fetchAssignmentsByCourse,
   fetchAllAnnouncements,
   submitAssignment,
+  fetchCurrentStudentProfile,
 } from "../../utils/api";
 import Navbar from "../../components/Navbar";
 import StudentsTab from "../Teacher/CourseTabs/StudentsTab";
 import StudentAttendanceView from "./StudentAttendanceView";
 import { getAuth } from "firebase/auth";
+import Chat from "../../components/Chat";
 
 const getPriorityColor = (priority) => {
   switch ((priority || "").toLowerCase()) {
@@ -34,7 +36,8 @@ const StudentCourseDetail = () => {
   const [assignments, setAssignments] = useState([]);
   const [selectedFiles, setSelectedFiles] = useState({});
   const [submittingId, setSubmittingId] = useState(null);
-  const currentUserId = getAuth().currentUser?.uid;
+  const [currentUserId, setCurrentUserId] = useState(null);
+  const [currentUserName, setCurrentUserName] = useState("Student");
 
   useEffect(() => {
     const fetchCourse = async () => {
@@ -68,6 +71,20 @@ const StudentCourseDetail = () => {
     fetchCourse();
   }, [courseId]);
 
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const profile = await fetchCurrentStudentProfile();
+        setCurrentUserId(profile._id);
+        setCurrentUserName(profile.name || "Student");
+      } catch (err) {
+        setCurrentUserId(null);
+        setCurrentUserName("Student");
+      }
+    };
+    fetchProfile();
+  }, []);
+
   if (loading) {
     return <div className="text-white p-10">Loading...</div>;
   }
@@ -94,6 +111,7 @@ const StudentCourseDetail = () => {
             "attendance",
             "announcements",
             "assignments",
+            "chat",
           ].map((tab) => (
             <button
               key={tab}
@@ -360,6 +378,16 @@ const StudentCourseDetail = () => {
                   );
                 })
               )}
+            </div>
+          )}
+          {activeTab === "chat" && (
+            <div className="space-y-4 bg-gray-800 p-6 rounded-md">
+              <Chat
+                courseId={courseId}
+                userId={currentUserId}
+                userName={currentUserName}
+                userRole="student"
+              />
             </div>
           )}
         </div>
