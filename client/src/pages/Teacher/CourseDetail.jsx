@@ -233,12 +233,16 @@ const CourseDetail = () => {
       formData.append("dueDate", assignForm.dueDate);
       formData.append("courseId", courseId);
       formData.append("file", assignForm.file);
-      await axios.post("http://localhost:8080/api/assignments", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/assignments`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
       setShowAssignForm(false);
       // Refresh assignments
       const assignRes = await fetchAssignmentsByCourse(courseId);
@@ -257,7 +261,9 @@ const CourseDetail = () => {
         const user = auth.currentUser;
         const token = await user.getIdToken();
         const res = await axios.get(
-          `http://localhost:8080/api/assignments/${assignmentId}/submissions`,
+          `${
+            import.meta.env.VITE_BACKEND_URL
+          }/api/assignments/${assignmentId}/submissions`,
           { headers: { Authorization: `Bearer ${token}` } }
         );
         setSubmissions((prev) => ({
@@ -271,7 +277,7 @@ const CourseDetail = () => {
   };
 
   const handleGradeChange = (assignmentId, uid, grade) => {
-    setGradingData(prev => ({
+    setGradingData((prev) => ({
       ...prev,
       [assignmentId]: {
         ...prev[assignmentId],
@@ -283,9 +289,8 @@ const CourseDetail = () => {
     }));
   };
 
-
   const handleFeedbackChange = (assignmentId, uid, feedback) => {
-    setGradingData(prev => ({
+    setGradingData((prev) => ({
       ...prev,
       [assignmentId]: {
         ...prev[assignmentId],
@@ -308,7 +313,9 @@ const CourseDetail = () => {
       const token = await auth.currentUser.getIdToken();
 
       await axios.patch(
-        `http://localhost:8080/api/assignments/${assignmentId}/grade/${uid}`,
+        `${
+          import.meta.env.VITE_BACKEND_URL
+        }/api/assignments/${assignmentId}/grade/${uid}`,
         {
           grade: data.grade,
           feedback: data.feedback || "",
@@ -323,7 +330,9 @@ const CourseDetail = () => {
       setSubmissions((prev) => ({
         ...prev,
         [assignmentId]: prev[assignmentId].map((s) =>
-          s.uid === uid ? { ...s, grade: data.grade, feedback: data.feedback } : s
+          s.uid === uid
+            ? { ...s, grade: data.grade, feedback: data.feedback }
+            : s
         ),
       }));
 
@@ -345,7 +354,6 @@ const CourseDetail = () => {
       console.error("Error submitting grade:", err);
     }
   };
-
 
   return (
     <div className="min-h-screen bg-gray-900 text-white">
@@ -525,125 +533,265 @@ const CourseDetail = () => {
               </div>
             )}
             {activeTab === "assignments" && (
-                <div className="space-y-12 bg-gray-800 p-6 rounded-md">
-                  <div className="flex justify-between items-center mb-4">
-                    <h2 className="text-xl font-bold text-indigo-400">Assignments</h2>
-                    <button
-                      onClick={handleAssignCreate}
-                      className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition"
-                    >
-                      + Add Assignment
-                    </button>
-                  </div>
+              <div className="space-y-12 bg-gray-800 p-6 rounded-md">
+                <div className="flex justify-between items-center mb-4">
+                  <h2 className="text-xl font-bold text-indigo-400">
+                    Assignments
+                  </h2>
+                  <button
+                    onClick={handleAssignCreate}
+                    className="px-4 py-2 bg-indigo-500 text-white rounded-md hover:bg-indigo-600 transition"
+                  >
+                    + Add Assignment
+                  </button>
+                </div>
 
-                  {showAssignForm && (
-                    <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-                      <div className="bg-gray-900 rounded-lg p-8 w-full max-w-lg">
-                        <h2 className="text-2xl font-bold text-indigo-400 mb-4">Create Assignment</h2>
-                        <form onSubmit={handleAssignSubmit} className="space-y-4">
-                          <input name="title" value={assignForm.title} onChange={handleAssignInputChange} placeholder="Title" className="w-full p-2 rounded bg-gray-800 text-white border border-gray-700" required />
-                          <textarea name="description" value={assignForm.description} onChange={handleAssignInputChange} placeholder="Description" className="w-full p-2 rounded bg-gray-800 text-white border border-gray-700" required />
-                          <input name="dueDate" type="date" value={assignForm.dueDate} onChange={handleAssignInputChange} className="w-full p-2 rounded bg-gray-800 text-white border border-gray-700" required />
-                          <input name="file" type="file" accept=".pdf,.txt" onChange={handleAssignFileChange} className="w-full p-2 rounded bg-gray-800 text-white border border-gray-700" required />
-                          <div className="flex justify-end gap-2 mt-4">
-                            <button type="button" className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600" onClick={() => setShowAssignForm(false)}>Cancel</button>
-                            <button type="submit" className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded text-white" disabled={assignLoading}>{assignLoading ? "Uploading..." : "Create"}</button>
-                          </div>
-                        </form>
-                      </div>
-                    </div>
-                  )}
-
-                  {assignments.length === 0 ? (
-                    <p className="text-gray-400">No assignments for this course.</p>
-                  ) : (
-                    assignments.map((assignment) => (
-                      <div key={assignment._id} className="bg-white/10 border border-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-md">
-                        <div className="flex justify-between items-center mb-5">
-                          <h3 className="text-2xl font-semibold text-indigo-300">{assignment.title}</h3>
-                          <div className="flex space-x-3">
-                            <button onClick={() => handleAssignTabChange(assignment._id, "details")} className={`px-4 py-1.5 text-sm rounded-full font-medium transition ${activeAssignTab[assignment._id] === "details" ? "bg-indigo-600 text-white" : "bg-gray-800 text-gray-300 hover:bg-indigo-600"}`}>View Details</button>
-                            <button onClick={() => handleAssignTabChange(assignment._id, "submissions")} className={`px-4 py-1.5 text-sm rounded-full font-medium transition ${activeAssignTab[assignment._id] === "submissions" ? "bg-indigo-600 text-white" : "bg-gray-800 text-gray-300 hover:bg-indigo-600"}`}>Submissions</button>
-                            <a href={assignment.fileUrl} target="_blank" rel="noopener noreferrer" className="px-4 py-1.5 text-sm bg-gray-800 hover:bg-indigo-600 rounded-full font-medium transition text-white">📄 View File</a>
-                          </div>
+                {showAssignForm && (
+                  <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+                    <div className="bg-gray-900 rounded-lg p-8 w-full max-w-lg">
+                      <h2 className="text-2xl font-bold text-indigo-400 mb-4">
+                        Create Assignment
+                      </h2>
+                      <form onSubmit={handleAssignSubmit} className="space-y-4">
+                        <input
+                          name="title"
+                          value={assignForm.title}
+                          onChange={handleAssignInputChange}
+                          placeholder="Title"
+                          className="w-full p-2 rounded bg-gray-800 text-white border border-gray-700"
+                          required
+                        />
+                        <textarea
+                          name="description"
+                          value={assignForm.description}
+                          onChange={handleAssignInputChange}
+                          placeholder="Description"
+                          className="w-full p-2 rounded bg-gray-800 text-white border border-gray-700"
+                          required
+                        />
+                        <input
+                          name="dueDate"
+                          type="date"
+                          value={assignForm.dueDate}
+                          onChange={handleAssignInputChange}
+                          className="w-full p-2 rounded bg-gray-800 text-white border border-gray-700"
+                          required
+                        />
+                        <input
+                          name="file"
+                          type="file"
+                          accept=".pdf,.txt"
+                          onChange={handleAssignFileChange}
+                          className="w-full p-2 rounded bg-gray-800 text-white border border-gray-700"
+                          required
+                        />
+                        <div className="flex justify-end gap-2 mt-4">
+                          <button
+                            type="button"
+                            className="px-4 py-2 bg-gray-700 rounded hover:bg-gray-600"
+                            onClick={() => setShowAssignForm(false)}
+                          >
+                            Cancel
+                          </button>
+                          <button
+                            type="submit"
+                            className="px-4 py-2 bg-indigo-600 hover:bg-indigo-700 rounded text-white"
+                            disabled={assignLoading}
+                          >
+                            {assignLoading ? "Uploading..." : "Create"}
+                          </button>
                         </div>
+                      </form>
+                    </div>
+                  </div>
+                )}
 
-                        {!activeAssignTab[assignment._id] || activeAssignTab[assignment._id] === "details" ? (
-                          <div className="text-base text-gray-300 space-y-2 ml-1">
-                            <p><span className="font-semibold text-white">Description:</span> {assignment.description || "N/A"}</p>
-                            <p><span className="font-semibold text-white">Due Date:</span> {new Date(assignment.dueDate).toLocaleDateString()}</p>
-                          </div>
-                        ) : null}
+                {assignments.length === 0 ? (
+                  <p className="text-gray-400">
+                    No assignments for this course.
+                  </p>
+                ) : (
+                  assignments.map((assignment) => (
+                    <div
+                      key={assignment._id}
+                      className="bg-white/10 border border-white/10 backdrop-blur-lg rounded-2xl p-6 shadow-md"
+                    >
+                      <div className="flex justify-between items-center mb-5">
+                        <h3 className="text-2xl font-semibold text-indigo-300">
+                          {assignment.title}
+                        </h3>
+                        <div className="flex space-x-3">
+                          <button
+                            onClick={() =>
+                              handleAssignTabChange(assignment._id, "details")
+                            }
+                            className={`px-4 py-1.5 text-sm rounded-full font-medium transition ${
+                              activeAssignTab[assignment._id] === "details"
+                                ? "bg-indigo-600 text-white"
+                                : "bg-gray-800 text-gray-300 hover:bg-indigo-600"
+                            }`}
+                          >
+                            View Details
+                          </button>
+                          <button
+                            onClick={() =>
+                              handleAssignTabChange(
+                                assignment._id,
+                                "submissions"
+                              )
+                            }
+                            className={`px-4 py-1.5 text-sm rounded-full font-medium transition ${
+                              activeAssignTab[assignment._id] === "submissions"
+                                ? "bg-indigo-600 text-white"
+                                : "bg-gray-800 text-gray-300 hover:bg-indigo-600"
+                            }`}
+                          >
+                            Submissions
+                          </button>
+                          <a
+                            href={assignment.fileUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-4 py-1.5 text-sm bg-gray-800 hover:bg-indigo-600 rounded-full font-medium transition text-white"
+                          >
+                            📄 View File
+                          </a>
+                        </div>
+                      </div>
 
-                        {activeAssignTab[assignment._id] === "submissions" && (
-                          <div className="mt-3 space-y-3">
-                            {submissions[assignment._id]?.length > 0 ? (
-                              submissions[assignment._id].map((sub) => (
-                                <div key={sub.uid} className="bg-gray-800/50 border border-white/10 p-4 rounded-lg flex flex-col md:flex-row justify-between md:items-center">
-                                  <div className="mb-2 md:mb-0">
-                                    <p className="text-white font-medium">{sub.name} ({sub.email})</p>
-                                    <p className="text-sm text-gray-300">
-                                      {sub.submitted ? `Submitted on ${new Date(sub.submittedAt).toLocaleString()}` : "Not submitted yet"}
+                      {!activeAssignTab[assignment._id] ||
+                      activeAssignTab[assignment._id] === "details" ? (
+                        <div className="text-base text-gray-300 space-y-2 ml-1">
+                          <p>
+                            <span className="font-semibold text-white">
+                              Description:
+                            </span>{" "}
+                            {assignment.description || "N/A"}
+                          </p>
+                          <p>
+                            <span className="font-semibold text-white">
+                              Due Date:
+                            </span>{" "}
+                            {new Date(assignment.dueDate).toLocaleDateString()}
+                          </p>
+                        </div>
+                      ) : null}
+
+                      {activeAssignTab[assignment._id] === "submissions" && (
+                        <div className="mt-3 space-y-3">
+                          {submissions[assignment._id]?.length > 0 ? (
+                            submissions[assignment._id].map((sub) => (
+                              <div
+                                key={sub.uid}
+                                className="bg-gray-800/50 border border-white/10 p-4 rounded-lg flex flex-col md:flex-row justify-between md:items-center"
+                              >
+                                <div className="mb-2 md:mb-0">
+                                  <p className="text-white font-medium">
+                                    {sub.name} ({sub.email})
+                                  </p>
+                                  <p className="text-sm text-gray-300">
+                                    {sub.submitted
+                                      ? `Submitted on ${new Date(
+                                          sub.submittedAt
+                                        ).toLocaleString()}`
+                                      : "Not submitted yet"}
+                                  </p>
+                                  {sub.grade !== null &&
+                                  sub.grade !== undefined ? (
+                                    <p className="text-sm text-green-400 mt-1">
+                                      Grade: {sub.grade}/10{" "}
+                                      {sub.feedback && (
+                                        <span>— {sub.feedback}</span>
+                                      )}
                                     </p>
-                                    {sub.grade !== null && sub.grade !== undefined ? (
-                                      <p className="text-sm text-green-400 mt-1">
-                                        Grade: {sub.grade}/10 {sub.feedback && <span>— {sub.feedback}</span>}
+                                  ) : (
+                                    sub.submitted && (
+                                      <p className="text-sm text-yellow-400 italic mt-1">
+                                        Not graded yet
                                       </p>
-                                    ) : (
-                                      sub.submitted && (
-                                        <p className="text-sm text-yellow-400 italic mt-1">Not graded yet</p>
-                                      )
-                                    )}
-                                  </div>
-                                  {sub.submitted && (
-                                    <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
-                                      <a href={sub.fileUrl} target="_blank" rel="noopener noreferrer" className="text-indigo-400 hover:underline font-medium">📥 View Submission</a>
-                                      {sub.grade === null || sub.grade === undefined ? (
-                                        <>
-                                          <input
-                                            type="number"
-                                            min="0"
-                                            max="10"
-                                            placeholder="Grade"
-                                            value={gradingData[assignment._id]?.[sub.uid]?.grade ?? ""}
-                                            onChange={(e) =>
-                                              handleGradeChange(assignment._id, sub.uid, e.target.value)
-                                            }
-                                            className="px-2 py-1 rounded bg-gray-700 text-white border border-gray-600 w-20"
-                                          />
-
-                                          <input
-                                            type="text"
-                                            placeholder="Feedback"
-                                            value={gradingData[assignment._id]?.[sub.uid]?.feedback ?? ""}
-                                            onChange={(e) =>
-                                              handleFeedbackChange(assignment._id, sub.uid, e.target.value)
-                                            }
-                                            className="px-2 py-1 rounded bg-gray-700 text-white border border-gray-600"
-                                          />
-
-                                          <button
-                                            onClick={() => handleSubmitGrade(assignment._id, sub.uid)}
-                                            className="px-4 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700"
-                                          >
-                                            Submit
-                                          </button>
-                                        </>
-                                      ) : null}
-                                    </div>
+                                    )
                                   )}
                                 </div>
-                              ))
-                            ) : (
-                              <p className="text-gray-300">No submissions found for this assignment.</p>
-                            )}
-                          </div>
-                        )}
-                      </div>
-                    ))
-                  )}
-                </div>
-              )}
+                                {sub.submitted && (
+                                  <div className="flex flex-col md:flex-row items-center gap-2 w-full md:w-auto">
+                                    <a
+                                      href={sub.fileUrl}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="text-indigo-400 hover:underline font-medium"
+                                    >
+                                      📥 View Submission
+                                    </a>
+                                    {sub.grade === null ||
+                                    sub.grade === undefined ? (
+                                      <>
+                                        <input
+                                          type="number"
+                                          min="0"
+                                          max="10"
+                                          placeholder="Grade"
+                                          value={
+                                            gradingData[assignment._id]?.[
+                                              sub.uid
+                                            ]?.grade ?? ""
+                                          }
+                                          onChange={(e) =>
+                                            handleGradeChange(
+                                              assignment._id,
+                                              sub.uid,
+                                              e.target.value
+                                            )
+                                          }
+                                          className="px-2 py-1 rounded bg-gray-700 text-white border border-gray-600 w-20"
+                                        />
+
+                                        <input
+                                          type="text"
+                                          placeholder="Feedback"
+                                          value={
+                                            gradingData[assignment._id]?.[
+                                              sub.uid
+                                            ]?.feedback ?? ""
+                                          }
+                                          onChange={(e) =>
+                                            handleFeedbackChange(
+                                              assignment._id,
+                                              sub.uid,
+                                              e.target.value
+                                            )
+                                          }
+                                          className="px-2 py-1 rounded bg-gray-700 text-white border border-gray-600"
+                                        />
+
+                                        <button
+                                          onClick={() =>
+                                            handleSubmitGrade(
+                                              assignment._id,
+                                              sub.uid
+                                            )
+                                          }
+                                          className="px-4 py-1 bg-indigo-600 text-white rounded hover:bg-indigo-700"
+                                        >
+                                          Submit
+                                        </button>
+                                      </>
+                                    ) : null}
+                                  </div>
+                                )}
+                              </div>
+                            ))
+                          ) : (
+                            <p className="text-gray-300">
+                              No submissions found for this assignment.
+                            </p>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))
+                )}
+              </div>
+            )}
 
             {activeTab === "chat" && (
               <div className="space-y-4 bg-gray-800 p-6 rounded-md">

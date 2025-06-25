@@ -4,8 +4,7 @@ import Home from "./components/Home";
 import LoginSelector from "./components/LoginSelector";
 import RoleSelect from "./components/RoleSelect";
 import PrivateRoute from "./components/PrivateRoute";
-import { useAppContext } from "./context/appContext";
-
+import { useAppContext } from "./context/AppContext";
 
 // Student Pages
 import StudentDashboard from "./pages/student/StudentDashboard";
@@ -33,9 +32,8 @@ import AddAssignment from "./pages/Teacher/AddAssignment";
 import Contact from "./components/Contact";
 import About from "./components/About";
 
-
 const App = () => {
-   const { loading } = useAppContext();
+  const { loading } = useAppContext();
 
   if (loading) {
     return (
@@ -52,8 +50,8 @@ const App = () => {
         <Route path="/" element={<Home />} />
         <Route path="/select-role" element={<RoleSelect />} />
         <Route path="/auth/:role" element={<LoginSelector />} />
-         <Route path="/contact" element={<Contact />} />
-          <Route path="/about" element={<About/>} />
+        <Route path="/contact" element={<Contact />} />
+        <Route path="/about" element={<About />} />
         {/* Student Routes */}
         <Route
           path="/student/dashboard"

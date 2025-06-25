@@ -20,9 +20,12 @@ const TeacherEditProfile = () => {
       if (!user) return;
       const token = await user.getIdToken();
 
-      const res = await axios.get("http://localhost:8080/api/users/teacher/profile", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/users/teacher/profile`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       const t = res.data.teacher;
       setFormData({
@@ -50,7 +53,7 @@ const TeacherEditProfile = () => {
       const token = await user.getIdToken();
 
       await axios.put(
-        "http://localhost:8080/api/users/teacher/profile",
+        `${import.meta.env.VITE_BACKEND_URL}/api/users/teacher/profile`,
         {
           ...formData,
           imageUrl: formData.avatar,
@@ -74,7 +77,10 @@ const TeacherEditProfile = () => {
           Edit Teacher Profile
         </h2>
 
-        <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <form
+          onSubmit={handleSubmit}
+          className="grid grid-cols-1 md:grid-cols-2 gap-6"
+        >
           <div className="md:col-span-2 flex flex-col items-center">
             <img
               src={formData.avatar}
@@ -113,7 +119,9 @@ const TeacherEditProfile = () => {
           </div>
 
           <div>
-            <label className="text-sm mb-1 text-gray-300 block">Experience</label>
+            <label className="text-sm mb-1 text-gray-300 block">
+              Experience
+            </label>
             <input
               name="experience"
               value={formData.experience}
@@ -123,7 +131,9 @@ const TeacherEditProfile = () => {
           </div>
 
           <div>
-            <label className="text-sm mb-1 text-gray-300 block">Qualification</label>
+            <label className="text-sm mb-1 text-gray-300 block">
+              Qualification
+            </label>
             <input
               name="qualification"
               value={formData.qualification}

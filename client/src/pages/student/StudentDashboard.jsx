@@ -29,7 +29,7 @@ const Dashboard = () => {
         if (!user) throw new Error("User not logged in");
         const token = await user.getIdToken();
         const profileRes = await axios.get(
-          "http://localhost:8080/api/users/student/profile",
+          `${import.meta.env.VITE_BACKEND_URL}/api/users/student/profile`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }
@@ -64,17 +64,19 @@ const Dashboard = () => {
 
         // Fetch announcements
         // Filter announcements for enrolled courses
-          const enrolledCourseTitles = (coursesRes.courses || []).map(c => c.title);
-          const announcementsRes = await fetchAllAnnouncements();
-          const filteredAnnouncements = (announcementsRes.announcements || []).filter(
-            (a) => enrolledCourseTitles.includes(a.course)
-          );
+        const enrolledCourseTitles = (coursesRes.courses || []).map(
+          (c) => c.title
+        );
+        const announcementsRes = await fetchAllAnnouncements();
+        const filteredAnnouncements = (
+          announcementsRes.announcements || []
+        ).filter((a) => enrolledCourseTitles.includes(a.course));
 
-          setAnnouncements(
-            filteredAnnouncements
-              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-              .slice(0, 3)
-          );
+        setAnnouncements(
+          filteredAnnouncements
+            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+            .slice(0, 3)
+        );
 
         // Fetch attendance statistics
         try {

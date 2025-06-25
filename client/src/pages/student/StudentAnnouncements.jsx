@@ -1,10 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 import { fetchAllAnnouncements } from "../../utils/api";
-import { useAppContext } from "../../context/appContext"; 
+import { useAppContext } from "../../context/AppContext";
 
 const Announcements = () => {
-  const { user } = useAppContext(); 
+  const { user } = useAppContext();
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

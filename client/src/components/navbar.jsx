@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { NavLink } from "react-router-dom";
-import { useAppContext } from "../context/appContext";
+import { useAppContext } from "../context/AppContext.jsx";
 
 const Navbar = ({ userType = "teacher" }) => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
@@ -21,7 +21,7 @@ const Navbar = ({ userType = "teacher" }) => {
         { to: "/student/All-Courses", label: "All Courses" },
         { to: "/student/courses", label: "My Courses" },
         { to: "/student/assignments", label: "Assignments" },
-        { to: "/student/announcements", label:"Announcements"},
+        { to: "/student/announcements", label: "Announcements" },
         { to: "/student/profile", label: "Profile" },
       ];
     }
@@ -39,7 +39,7 @@ const Navbar = ({ userType = "teacher" }) => {
         >
           LearnX
         </NavLink>
-        
+
         {/* Desktop Nav */}
         <nav className="hidden md:flex items-center space-x-8">
           {getNavLinks().map((link) => (
@@ -57,8 +57,10 @@ const Navbar = ({ userType = "teacher" }) => {
               {link.label}
             </NavLink>
           ))}
-          <button onClick={logout}
-           className="ml-4 px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition">
+          <button
+            onClick={logout}
+            className="ml-4 px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition"
+          >
             Logout
           </button>
         </nav>
@@ -117,9 +119,12 @@ const Navbar = ({ userType = "teacher" }) => {
               </div>
 
               <div className="p-6 border-t border-gray-700">
-                <button 
+                <button
                   className="w-full px-4 py-2 bg-white text-gray-900 rounded-md hover:bg-indigo-400 hover:text-white transition"
-                  onClick={() =>{ setIsMobileMenuOpen(false); logout();}}
+                  onClick={() => {
+                    setIsMobileMenuOpen(false);
+                    logout();
+                  }}
                 >
                   Logout
                 </button>

@@ -13,7 +13,7 @@ import {
   browserLocalPersistence,
 } from "firebase/auth";
 import { auth } from "../firebase";
-import { useAppContext } from "../context/appContext";
+import { useAppContext } from "../context/AppContext";
 
 const LoginSelector = () => {
   const { role } = useParams();
@@ -28,7 +28,7 @@ const LoginSelector = () => {
     const idToken = await firebaseUser.getIdToken(true);
 
     const res = await axios.post(
-      "http://localhost:8080/api/users/verify",
+      `${import.meta.env.VITE_BACKEND_URL}/api/users/verify`,
       {
         role,
         name: firebaseUser.displayName,
@@ -70,7 +70,9 @@ const LoginSelector = () => {
       await handleFirebaseLogin(result.user, name);
     } catch (error) {
       const message =
-        error.response?.data?.message || error.message || "Something went wrong. Please try again.";
+        error.response?.data?.message ||
+        error.message ||
+        "Something went wrong. Please try again.";
       console.error("Auth error:", message);
       alert(message);
     } finally {
@@ -91,7 +93,9 @@ const LoginSelector = () => {
       await handleFirebaseLogin(result.user);
     } catch (error) {
       const message =
-        error.response?.data?.message || error.message || "Something went wrong. Please try again.";
+        error.response?.data?.message ||
+        error.message ||
+        "Something went wrong. Please try again.";
 
       if (error.code === "auth/popup-blocked") {
         alert("Popup was blocked. Please allow popups and try again.");

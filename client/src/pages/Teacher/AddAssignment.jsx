@@ -22,9 +22,12 @@ const CreateAssignment = () => {
         const user = auth.currentUser;
         const token = await user.getIdToken();
 
-        const res = await axios.get("http://localhost:8080/api/courses/my", {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await axios.get(
+          `${import.meta.env.VITE_BACKEND_URL}/api/courses/my`,
+          {
+            headers: { Authorization: `Bearer ${token}` },
+          }
+        );
 
         setCourses(res.data.courses || []);
       } catch (err) {
@@ -48,12 +51,16 @@ const CreateAssignment = () => {
       formData.append("courseId", form.courseId);
       formData.append("file", form.file);
 
-      await axios.post("http://localhost:8080/api/assignments", formData, {
-        headers: {
-          Authorization: `Bearer ${token}`,
-          "Content-Type": "multipart/form-data",
-        },
-      });
+      await axios.post(
+        `${import.meta.env.VITE_BACKEND_URL}/api/assignments`,
+        formData,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "multipart/form-data",
+          },
+        }
+      );
 
       alert("Assignment created successfully!");
       navigate("/teacher/assignments"); // ✅ Redirect here after success
@@ -73,7 +80,9 @@ const CreateAssignment = () => {
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-blue-300 opacity-10 rounded-full blur-2xl"></div>
 
         <div className="max-w-3xl mx-auto bg-white/5 backdrop-blur-md border border-white/10 rounded-xl shadow-xl p-8 relative z-10">
-          <h2 className="text-3xl font-bold text-indigo-400 mb-6 text-center">Create Assignment</h2>
+          <h2 className="text-3xl font-bold text-indigo-400 mb-6 text-center">
+            Create Assignment
+          </h2>
 
           <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6">
             <div>
@@ -88,17 +97,23 @@ const CreateAssignment = () => {
             </div>
 
             <div>
-              <label className="block text-sm mb-1 text-gray-300">Description</label>
+              <label className="block text-sm mb-1 text-gray-300">
+                Description
+              </label>
               <textarea
                 value={form.description}
-                onChange={(e) => setForm({ ...form, description: e.target.value })}
+                onChange={(e) =>
+                  setForm({ ...form, description: e.target.value })
+                }
                 rows="4"
                 className="w-full px-4 py-2 bg-gray-800 text-white rounded-md border border-gray-700"
               />
             </div>
 
             <div>
-              <label className="block text-sm mb-1 text-gray-300">Due Date</label>
+              <label className="block text-sm mb-1 text-gray-300">
+                Due Date
+              </label>
               <input
                 type="date"
                 value={form.dueDate}
@@ -126,7 +141,9 @@ const CreateAssignment = () => {
             </div>
 
             <div>
-              <label className="block text-sm mb-1 text-gray-300">Upload File (PDF/Text)</label>
+              <label className="block text-sm mb-1 text-gray-300">
+                Upload File (PDF/Text)
+              </label>
               <input
                 type="file"
                 accept=".pdf,.txt"

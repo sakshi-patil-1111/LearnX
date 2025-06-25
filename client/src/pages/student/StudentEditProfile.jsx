@@ -14,9 +14,12 @@ const StudentEditProfile = () => {
       if (!user) return;
 
       const token = await user.getIdToken();
-      const res = await axios.get("http://localhost:8080/api/users/student/profile", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const res = await axios.get(
+        `${import.meta.env.VITE_BACKEND_URL}/api/users/student/profile`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setFormData(res.data.student);
     };
 
@@ -37,7 +40,7 @@ const StudentEditProfile = () => {
       const token = await user.getIdToken();
 
       await axios.put(
-        "http://localhost:8080/api/users/student/profile",
+        `${import.meta.env.VITE_BACKEND_URL}/api/users/student/profile`,
         formData,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -52,7 +55,8 @@ const StudentEditProfile = () => {
     }
   };
 
-  if (!formData) return <div className="text-center text-white mt-10">Loading...</div>;
+  if (!formData)
+    return <div className="text-center text-white mt-10">Loading...</div>;
 
   return (
     <div className="min-h-screen bg-gray-900 text-white px-6 py-10">
@@ -89,8 +93,13 @@ const StudentEditProfile = () => {
             ["Semester", "semester"],
             ["Course", "course"],
           ].map(([label, name]) => (
-            <div key={name} className={name === "course" ? "md:col-span-2" : ""}>
-              <label className="block text-sm mb-1 text-gray-300">{label}</label>
+            <div
+              key={name}
+              className={name === "course" ? "md:col-span-2" : ""}
+            >
+              <label className="block text-sm mb-1 text-gray-300">
+                {label}
+              </label>
               <input
                 type="text"
                 name={name}

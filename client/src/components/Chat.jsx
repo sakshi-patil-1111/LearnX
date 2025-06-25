@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef } from "react";
 import { io } from "socket.io-client";
 
-const SOCKET_URL = "http://localhost:8080";
+const SOCKET_URL = `${import.meta.env.VITE_BACKEND_URL}`;
 
 const Chat = ({ courseId, userId, userName, userRole }) => {
   const [messages, setMessages] = useState([]);

@@ -1,4 +1,4 @@
-export const API_BASE = import.meta.env.VITE_BACKEND_URL;
+export const API_BASE = `${import.meta.env.VITE_BACKEND_URL}/api`;
 import { auth } from "../firebase";
 import axios from "axios";
 
@@ -25,7 +25,7 @@ export const createCourse = async (courseData) => {
 
   const token = await user.getIdToken();
 
-  const res = await fetch("http://localhost:8080/api/courses", {
+  const res = await fetch(`${API_BASE}/courses`, {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
@@ -227,31 +227,27 @@ export const fetchTeacherAnnouncements = async () => {
 
 // Announcements API
 export const fetchAllAnnouncements = async () => {
-  const res = await axios.get("http://localhost:8080/api/announcements");
+  const res = await axios.get(`${API_BASE}/announcements`);
   return res.data;
 };
 
 export const fetchAnnouncementsByCourse = async (course) => {
-  const res = await axios.get(
-    `http://localhost:8080/api/announcements/course/${course}`
-  );
+  const res = await axios.get(`${API_BASE}/announcements/course/${course}`);
   return res.data;
 };
 
 export const createAnnouncement = async (announcementData) => {
   const token = await getAuthToken();
-  const res = await axios.post(
-    "http://localhost:8080/api/announcements",
-    announcementData,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+  const res = await axios.post(`${API_BASE}/announcements`, announcementData, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return res.data;
 };
 
 export const updateAnnouncement = async (id, announcementData) => {
   const token = await getAuthToken();
   const res = await axios.put(
-    `http://localhost:8080/api/announcements/${id}`,
+    `${API_BASE}/announcements/${id}`,
     announcementData,
     { headers: { Authorization: `Bearer ${token}` } }
   );
@@ -260,10 +256,9 @@ export const updateAnnouncement = async (id, announcementData) => {
 
 export const deleteAnnouncement = async (id) => {
   const token = await getAuthToken();
-  const res = await axios.delete(
-    `http://localhost:8080/api/announcements/${id}`,
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
+  const res = await axios.delete(`${API_BASE}/announcements/${id}`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
   return res.data;
 };
 
@@ -350,6 +345,7 @@ export const getStudentAttendanceStats = async () => {
 
 export const fetchCurrentStudentProfile = async () => {
   const token = await getAuthToken();
+  // console.log(API_BASE);
   const res = await axios.get(`${API_BASE}/users/student/profile`, {
     headers: { Authorization: `Bearer ${token}` },
   });

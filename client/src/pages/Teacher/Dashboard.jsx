@@ -27,7 +27,7 @@ const Dashboard = () => {
         if (!user) throw new Error("User not logged in");
         const token = await user.getIdToken();
         const profileRes = await axios.get(
-          "http://localhost:8080/api/users/teacher/profile",
+          `${import.meta.env.VITE_BACKEND_URL}/api/users/teacher/profile`,
           {
             headers: { Authorization: `Bearer ${token}` },
           }

@@ -1,5 +1,5 @@
 import { Navigate } from "react-router-dom";
-import { useAppContext } from "../context/appContext";
+import { useAppContext } from "../context/AppContext";
 
 const PrivateRoute = ({ children, allowedRole }) => {
   const { user, isTeacher, loading } = useAppContext();
