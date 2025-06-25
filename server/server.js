@@ -10,6 +10,7 @@ import teacherRoutes from "./routes/teacherRoutes.js";
 import courseRoutes from "./routes/courseRoutes.js";
 import assignmentRoutes from "./routes/assignmentRoutes.js";
 import announcementRoutes from "./routes/announcementRoutes.js";
+import attendanceRoutes from "./routes/attendanceRoutes.js";
 
 const app = express();
 const PORT = process.env.PORT || 8080;
@@ -37,6 +38,7 @@ app.use("/api/users/teacher", teacherRoutes);
 app.use("/api/courses", courseRoutes);
 app.use("/api/assignments", assignmentRoutes);
 app.use("/api/announcements", announcementRoutes);
+app.use("/api/attendance", attendanceRoutes);
 
 app.listen(PORT, () => {
   console.log(`Server is running on http://localhost:${PORT}`);
