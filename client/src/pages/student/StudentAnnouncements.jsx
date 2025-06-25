@@ -1,8 +1,10 @@
 import React, { useEffect, useState } from "react";
 import Navbar from "../../components/Navbar";
 import { fetchAllAnnouncements } from "../../utils/api";
+import { useAppContext } from "../../context/appContext"; 
 
 const Announcements = () => {
+  const { user } = useAppContext(); 
   const [announcements, setAnnouncements] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -12,15 +14,25 @@ const Announcements = () => {
       setLoading(true);
       try {
         const res = await fetchAllAnnouncements();
-        setAnnouncements(res.announcements || []);
+
+        // Filter announcements by enrolled course titles
+        const enrolledTitles = user?.enrolledCourses?.map((c) => c.title) || [];
+        const filtered = res.announcements?.filter((a) =>
+          enrolledTitles.includes(a.course)
+        );
+
+        setAnnouncements(filtered || []);
       } catch (err) {
         setError("Failed to load announcements");
       } finally {
         setLoading(false);
       }
     };
-    loadAnnouncements();
-  }, []);
+
+    if (user?.enrolledCourses?.length) {
+      loadAnnouncements();
+    }
+  }, [user]);
 
   const getPriorityColor = (priority) => {
     switch ((priority || "").toLowerCase()) {
@@ -54,6 +66,10 @@ const Announcements = () => {
             <div className="text-center text-white">Loading...</div>
           ) : error ? (
             <div className="text-center text-red-400">{error}</div>
+          ) : announcements.length === 0 ? (
+            <div className="text-gray-400">
+              No announcements for your enrolled courses.
+            </div>
           ) : (
             <div className="space-y-6">
               {announcements.map((announcement) => (
@@ -81,9 +97,6 @@ const Announcements = () => {
 
                   <div className="flex justify-between items-center">
                     <div className="flex flex-col">
-                      {/* <span className="text-sm text-gray-400">
-                        Posted by {announcement.instructor}
-                      </span> */}
                       <span className="text-sm text-gray-400">
                         {new Date(announcement.createdAt).toLocaleString()}
                       </span>

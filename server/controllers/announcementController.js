@@ -1,4 +1,6 @@
 import Announcement from "../models/Announcement.js";
+import User from "../models/User.js";
+
 
 // Get all announcements
 export const getAllAnnouncements = async (req, res) => {
@@ -78,5 +80,24 @@ export const deleteAnnouncement = async (req, res) => {
     res
       .status(400)
       .json({ success: false, message: "Failed to delete announcement" });
+  }
+};
+
+export const getAnnouncementsForEnrolledCourses = async (req, res) => {
+  try {
+    const user = await User.findOne({ uid: req.user.uid }).populate("enrolledCourses");
+
+    if (!user) return res.status(404).json({ success: false, message: "User not found" });
+
+    const courseTitles = user.enrolledCourses.map(course => course.title); 
+
+    const announcements = await Announcement.find({
+      course: { $in: courseTitles }
+    }).sort({ createdAt: -1 });
+
+    res.json({ success: true, announcements });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ success: false, message: "Server error" });
   }
 };

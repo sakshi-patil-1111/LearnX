@@ -14,9 +14,9 @@ import StudentEditProfile from "./pages/student/StudentEditProfile";
 import AllCourses from "./pages/student/AllCourses";
 import StudentCourseView from "./pages/student/StudentCourseView";
 import MyCourses from "./pages/student/MyCourses";
-import StudentAnnouncements from "./pages/student/StudentAnnouncements";
 import StudentAssignments from "./pages/student/StudentAssignments";
 import StudentMaterial from "./pages/student/StudentMaterial";
+import AllAnnouncements from "./pages/student/AllAnnouncements";
 
 // Teacher Pages
 import TeacherDashboard from "./pages/Teacher/Dashboard";
@@ -32,6 +32,7 @@ import CourseEdit from "./pages/Teacher/CourseEdit";
 import AddAssignment from "./pages/Teacher/AddAssignment";
 import Contact from "./components/Contact";
 import About from "./components/About";
+
 
 const App = () => {
    const { loading } = useAppContext();
@@ -115,7 +116,7 @@ const App = () => {
           path="/student/announcements"
           element={
             <PrivateRoute allowedRole="student">
-              <StudentAnnouncements />
+              <AllAnnouncements />
             </PrivateRoute>
           }
         />

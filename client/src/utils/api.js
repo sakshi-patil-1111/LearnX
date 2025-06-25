@@ -344,3 +344,12 @@ export const fetchCurrentTeacherProfile = async () => {
   });
   return res.data.teacher;
 };
+
+//all enrolled announcements
+export const fetchEnrolledAnnouncements = async () => {
+  const token = await getAuthToken();
+  const res = await axios.get(`${API_BASE}/announcements/enrolled`, {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return res.data;
+};

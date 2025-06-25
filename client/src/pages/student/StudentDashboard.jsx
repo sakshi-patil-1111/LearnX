@@ -63,12 +63,18 @@ const Dashboard = () => {
         setAssignments(assignmentsArr.slice(0, 3));
 
         // Fetch announcements
-        const announcementsRes = await fetchAllAnnouncements();
-        setAnnouncements(
-          (announcementsRes.announcements || [])
-            .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
-            .slice(0, 3)
-        );
+        // Filter announcements for enrolled courses
+          const enrolledCourseTitles = (coursesRes.courses || []).map(c => c.title);
+          const announcementsRes = await fetchAllAnnouncements();
+          const filteredAnnouncements = (announcementsRes.announcements || []).filter(
+            (a) => enrolledCourseTitles.includes(a.course)
+          );
+
+          setAnnouncements(
+            filteredAnnouncements
+              .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+              .slice(0, 3)
+          );
 
         // Fetch attendance statistics
         try {
