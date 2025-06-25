@@ -1,4 +1,4 @@
-export const API_BASE = "http://localhost:8080/api";
+export const API_BASE = import.meta.env.VITE_BACKEND_URL;
 import { auth } from "../firebase";
 import axios from "axios";
 
@@ -193,23 +193,22 @@ export const submitAssignment = async (assignmentId, file) => {
 
 //for grading
 export const gradeAssignmentSubmission = async (
-    assignmentId,
-    studentId,
-    gradeData
-  ) => {
-    const token = await getAuthToken();
-    const res = await axios.post(
-      `${API_BASE}/assignments/${assignmentId}/grade/${studentId}`,
-      gradeData,
-      {
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-      }
-    );
-    return res.data;
-  };
-
+  assignmentId,
+  studentId,
+  gradeData
+) => {
+  const token = await getAuthToken();
+  const res = await axios.post(
+    `${API_BASE}/assignments/${assignmentId}/grade/${studentId}`,
+    gradeData,
+    {
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+    }
+  );
+  return res.data;
+};
 
 // Fetch assignments created by the teacher
 export const fetchTeacherAssignments = async () => {
